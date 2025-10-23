@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمودار مالی - {{ title }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            font-family: '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(180deg, #f5f7fb 0%, #f0f3f8 100%);
+            color: #2d3748;
+        }
+
+        body {
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 16px;
+        }
+
+        /* ===== هدر حرفه‌ای ===== */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a365d;
+            margin: 0;
+            flex: 1;
+            min-width: 240px;
+            letter-spacing: -0.3px;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-size: 14px;
+        }
+
+        .header .user-info span {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .header .badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== بخش نمودار ===== */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .chart-section {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease-out 0.1s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-section h2 {
+            color: #1a365d;
+            margin-bottom: 24px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: right;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 380px;
+            margin-bottom: 12px;
+        }
+
+        #financialChart {
+            max-height: 380px;
+        }
+
+        /* ===== بخش خلاصه ===== */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            animation: fadeIn 0.5s ease-out 0.2s both;
+        }
+
+        /* کارت‌های خلاصه */
+        .summary-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: #3b82f6;
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .summary-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .summary-card h3 {
+            color: #4a5568;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: none;
+        }
+
+        .summary-card .amount {
+            font-size: 26px;
+            font-weight: 700;
+            color: #3b82f6;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            letter-spacing: -0.5px;
+        }
+
+        /* رنگ‌بندی کارت‌ها */
+        .summary-card.income {
+            --primary: #10b981;
+            --light: rgba(16, 185, 129, 0.1);
+        }
+
+        .summary-card.income::before {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+        }
+
+        .summary-card.income .amount {
+            color: #059669;
+        }
+
+        .summary-card.expense {
+            --primary: #ef4444;
+            --light: rgba(239, 68, 68, 0.1);
+        }
+
+        .summary-card.expense::before {
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .summary-card.expense .amount {
+            color: #dc2626;
+        }
+
+        .summary-card.creditor-paid {
+            --primary: #3b82f6;
+            --light: rgba(59, 130, 246, 0.1);
+        }
+
+        .summary-card.creditor-paid::before {
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .summary-card.creditor-paid .amount {
+            color: #2563eb;
+        }
+
+        .summary-card.creditor-unpaid {
+            --primary: #f59e0b;
+            --light: rgba(245, 158, 11, 0.1);
+        }
+
+        .summary-card.creditor-unpaid::before {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .summary-card.creditor-unpaid .amount {
+            color: #d97706;
+        }
+
+        .summary-card.loan-profit {
+            --primary: #8b5cf6;
+            --light: rgba(139, 92, 246, 0.1);
+        }
+
+        .summary-card.loan-profit::before {
+            background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .summary-card.loan-profit .amount {
+            color: #7c3aed;
+        }
+
+        .summary-card.profit {
+            --primary: #06b6d4;
+            --light: rgba(6, 182, 212, 0.1);
+        }
+
+        .summary-card.profit::before {
+            background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%);
+        }
+
+        .summary-card.profit .amount {
+            color: #0891b2;
+        }
+
+        /* لودینگ */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 50px;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(59, 130, 246, 0.1);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* پیام خطا */
+        .error-message {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        /* اطلاعات زمان‌بندی */
+        .timestamp {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        /* بدون داده */
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* وضعیت داده */
+        .data-status {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #f3f4f6 100%);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #374151;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* اطلاعات افسانه */
+        .legend-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-item span {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        /* تنظیمات رنگ افسانه */
+        .legend-color.income {
+            background: #10b981;
+        }
+
+        .legend-color.expense {
+            background: #ef4444;
+        }
+
+        .legend-color.creditor-paid {
+            background: #3b82f6;
+        }
+
+        .legend-color.creditor-unpaid {
+            background: #f59e0b;
+        }
+
+        .legend-color.loan-profit {
+            background: #8b5cf6;
+        }
+
+        .legend-color.profit {
+            background: #06b6d4;
+        }
+
+        /* تنظیمات واکنش‌پذیر */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 20px 24px;
+            }
+
+            .chart-section {
+                padding: 24px;
+            }
+
+            .summary-section {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+            }
+
+            .summary-card {
+                padding: 18px;
+            }
+
+            .summary-card h3 {
+                font-size: 12px;
+            }
+
+            .summary-card .amount {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 8px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px 20px;
+                text-align: center;
+            }
+
+            .header h1 {
+                width: 100%;
+                font-size: 22px;
+            }
+
+            .header .user-info {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header .user-info span,
+            .header .badge,
+            .logout-btn {
+                margin: 0;
+            }
+
+            .chart-section {
+                padding: 16px;
+                min-height: auto;
+            }
+
+            .chart-section h2 {
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .chart-container {
+                min-height: 300px;
+            }
+
+            #financialChart {
+                max-height: 300px;
+            }
+
+            .summary-section {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .summary-card {
+                padding: 16px;
+            }
+
+            .summary-card h3 {
+                font-size: 12px;
+            }
+
+            .summary-card .amount {
+                font-size: 20px;
+            }
+
+            .legend-info {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 12px;
+                font-size: 11px;
+            }
+
+            .data-status {
+                font-size: 11px;
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 4px;
+            }
+
+            .header {
+                padding: 12px 16px;
+                gap: 8px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .header .user-info {
+                gap: 10px;
+                font-size: 12px;
+            }
+
+            .chart-section {
+                padding: 12px;
+            }
+
+            .chart-section h2 {
+                font-size: 16px;
+            }
+
+            .summary-card .amount {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- هدر -->
+        <div class="header">
+            <h1>📊 نمودار مالی</h1>
+            <div class="user-info">
+                <span>خوش آمدید: <strong>{{ user.first_name }} {{ user.last_name }}</strong></span>
+                <span class="badge">✓ ادمین</span>
+            </div>
+            <a href="{% url 'core:logout' %}" class="logout-btn">خروج</a>
+        </div>
+
+        <!-- بخش نمودار -->
+        <div class="chart-section">
+            <h2>نمودار 12 ماه اخیر</h2>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>درحال بارگذاری داده‌ها...</p>
+            </div>
+            <div class="chart-container" id="chartContainer">
+                <canvas id="financialChart"></canvas>
+                <div class="legend-info">
+                    <div class="legend-item">
+                        <div class="legend-color income"></div>
+                        <span>درآمدها کل</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color income"></div>
+                        <span>درآمد مشاورات</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color income"></div>
+                        <span>درآمد پرونده‌ها</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color expense"></div>
+                        <span>هزینه‌ها</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color creditor-paid"></div>
+                        <span>بستانکاری پرداختی</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color creditor-unpaid"></div>
+                        <span>بستانکاری معوق</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color loan-profit"></div>
+                        <span>سود فروش وام</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color profit"></div>
+                        <span>سود خالص</span>
+                    </div>
+                </div>
+                <div class="data-status" id="dataStatus"></div>
+                <div class="timestamp" id="timestamp"></div>
+            </div>
+        </div>
+
+        <!-- بخش خلاصه آمار -->
+        <div class="summary-section">
+            <div class="summary-card income">
+                <h3>💰 کل درآمدها</h3>
+                <div class="amount" id="totalIncome">-</div>
+            </div>
+
+            <div class="summary-card income">
+                <h3>📞 درآمد مشاورات</h3>
+                <div class="amount" id="totalConsultationIncome">-</div>
+            </div>
+
+            <div class="summary-card income">
+                <h3>📄 درآمد پرونده‌ها</h3>
+                <div class="amount" id="totalCaseIncome">-</div>
+            </div>
+
+            <!-- درآمدهای ثبتی -->
+            <div class="summary-section-divider">
+                <h2 style="color: #1a365d; margin: 20px 0 10px 0; font-size: 18px;">📋 درآمدهای خدمات ثبتی</h2>
+            </div>
+
+            <div class="summary-card income">
+                <h3>🏢 بازرگانی اخذ</h3>
+                <div class="amount" id="totalRegistryTradeAcquisition">-</div>
+            </div>
+
+            <div class="summary-card income">
+                <h3>🏪 بازرگانی مشارکتی</h3>
+                <div class="amount" id="totalRegistryTradePartnership">-</div>
+            </div>
+
+            <div class="summary-card income">
+                <h3>🏭 ثبت شرکت‌ها</h3>
+                <div class="amount" id="totalRegistryCompany">-</div>
+            </div>
+
+            <div class="summary-card income">
+                <h3>📜 مجوزها</h3>
+                <div class="amount" id="totalRegistryLicense">-</div>
+            </div>
+
+            <div class="summary-card expense">
+                <h3>💸 کل هزینه‌ها</h3>
+                <div class="amount" id="totalExpense">-</div>
+            </div>
+            <div class="summary-card creditor-paid">
+                <h3>✅ بستانکاری پرداخت‌شده</h3>
+                <div class="amount" id="totalCreditorPaid">-</div>
+            </div>
+            <div class="summary-card creditor-unpaid">
+                <h3>⏳ بستانکاری پرداخت‌نشده</h3>
+                <div class="amount" id="totalCreditorUnpaid">-</div>
+            </div>
+            <div class="summary-card loan-profit">
+                <h3>🎯 سود فروش وام</h3>
+                <div class="amount" id="totalLoanSaleProfit">-</div>
+            </div>
+            <div class="summary-card profit">
+                <h3>📈 سود خالص</h3>
+                <div class="amount" id="netProfit">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // متغیرهای جهانی
+        let chart = null;
+
+        // توابع کمکی برای فرمت‌بندی اعداد
+        function formatNumber(num) {
+            return Math.floor(num).toLocaleString('fa-IR');
+        }
+
+        function formatAmount(num) {
+            const formatted = Math.floor(num).toLocaleString('fa-IR');
+            return formatted + ' تومان';
+        }
+
+        // تابع برای نمایش خطا
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        // تابع برای مخفی‌کردن خطا
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // تابع برای بارگذاری داده‌ها
+        async function loadChartData() {
+            try {
+                hideError();
+                document.getElementById('loading').style.display = 'flex';
+
+                const response = await fetch('{% url "core:financial_chart_api" %}');
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        showError('⛔ شما به این صفحه دسترسی ندارید. فقط ادمین‌ها می‌توانند نمودار را ببینند.');
+                    } else {
+                        showError('خطا در دریافت داده‌ها: ' + response.statusText);
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // به‌روزرسانی خلاصه آمار
+                document.getElementById('totalIncome').textContent = formatAmount(data.summary.total_income);
+                document.getElementById('totalConsultationIncome').textContent = formatAmount(data.summary.total_consultation_income);
+                document.getElementById('totalCaseIncome').textContent = formatAmount(data.summary.total_case_income);
+                
+                // درآمدهای ثبتی
+                document.getElementById('totalRegistryTradeAcquisition').textContent = formatAmount(data.summary.total_registry_trade_acquisition);
+                document.getElementById('totalRegistryTradePartnership').textContent = formatAmount(data.summary.total_registry_trade_partnership);
+                document.getElementById('totalRegistryCompany').textContent = formatAmount(data.summary.total_registry_company);
+                document.getElementById('totalRegistryLicense').textContent = formatAmount(data.summary.total_registry_license);
+                
+                document.getElementById('totalExpense').textContent = formatAmount(data.summary.total_expense);
+                document.getElementById('totalCreditorPaid').textContent = formatAmount(data.summary.total_creditor_paid);
+                document.getElementById('totalCreditorUnpaid').textContent = formatAmount(data.summary.total_creditor_unpaid);
+                document.getElementById('totalLoanSaleProfit').textContent = formatAmount(data.summary.total_loan_sale_profit);
+                document.getElementById('netProfit').textContent = formatAmount(data.summary.net_profit);
+
+                // رنگ‌بندی سود خالص
+                const profitEl = document.getElementById('netProfit');
+                if (data.summary.net_profit >= 0) {
+                    profitEl.style.color = '#2ecc71'; // سبز برای سود
+                } else {
+                    profitEl.style.color = '#e74c3c'; // قرمز برای زیان
+                }
+
+                // ساخت نمودار
+                drawChart(data);
+
+                // به‌روزرسانی وضعیت داده‌ها
+                const dataStatus = document.getElementById('dataStatus');
+                const incomeCount = data.datasets[0].data.filter(v => v > 0).length;
+                const consultationCount = data.datasets[1].data.filter(v => v > 0).length;
+                const caseCount = data.datasets[2].data.filter(v => v > 0).length;
+                const expenseCount = data.datasets[3].data.filter(v => v > 0).length;
+                const creditorPaidCount = data.datasets[4].data.filter(v => v > 0).length;
+                const creditorUnpaidCount = data.datasets[5].data.filter(v => v > 0).length;
+                const loanProfitCount = data.datasets[6].data.filter(v => v > 0).length;
+                dataStatus.textContent = `📅 دوره: ${data.summary.period} | درآمد کل: ${incomeCount} ماه | مشاورات: ${consultationCount} ماه | پرونده‌ها: ${caseCount} ماه | هزینه: ${expenseCount} ماه | بستانکاری پرداختی: ${creditorPaidCount} ماه | بستانکاری معوق: ${creditorUnpaidCount} ماه | سود فروش وام: ${loanProfitCount} ماه`;
+
+                // به‌روزرسانی زمان
+                const now = new Date();
+                const timeStr = now.toLocaleString('fa-IR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('timestamp').textContent = '🕐 آخرین به‌روزرسانی: ' + timeStr;
+
+            } catch (error) {
+                showError('خطای شبکه: ' + error.message);
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // تابع برای رسم نمودار
+        function drawChart(data) {
+            const ctx = document.getElementById('financialChart').getContext('2d');
+            
+            // حذف نمودار قدیمی اگر وجود داشته باشد
+            if (chart) {
+                chart.destroy();
+            }
+
+            // ساخت نمودار جدید
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 13,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                },
+                                generateLabels: function(chart) {
+                                    return chart.data.datasets.map((dataset, i) => ({
+                                        text: dataset.label,
+                                        fillStyle: dataset.backgroundColor,
+                                        strokeStyle: dataset.borderColor,
+                                        lineWidth: 2,
+                                        hidden: false,
+                                        index: i
+                                    }));
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            borderRadius: 8,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += formatNumber(context.parsed.y) + ' تومان';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            ticks: {
+                                color: '#666',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            stacked: false,
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#666',
+                                font: {
+                                    size: 12
+                                },
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // اولین بار بارگذاری داده‌ها هنگام بارگذاری صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChartData();
+
+            // تازه‌سازی خودکار هر 5 دقیقه
+            setInterval(loadChartData, 5 * 60 * 1000);
+        });
+
+        // دکمه تازه‌سازی با Ctrl+R
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault();
+                loadChartData();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطا - فونیکس</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a7c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .error-container {
+            text-align: center;
+            background: white;
+            padding: 60px 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+        }
+        
+        .error-code {
+            font-size: 72px;
+            font-weight: 800;
+            color: #e53e3e;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+        
+        .error-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: #f7fafc;
+            border-right: 4px solid #d69e2e;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            text-align: right;
+            font-size: 14px;
+            color: #2d3748;
+        }
+        
+        .error-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 300ms ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a365d, #2d4a7c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 54, 93, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 54, 93, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #1a365d;
+            border: 2px solid #1a365d;
+        }
+        
+        .btn-secondary:hover {
+            background: #1a365d;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .error-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        
+        {% if error == 'صفحه یافت نشد' %}
+            <div class="error-code">404</div>
+            <div class="error-title">صفحه یافت نشد</div>
+            <div class="error-message">
+                متأسفانه صفحه‌ای که شما به دنبال آن هستید وجود ندارد یا منتقل شده است.
+            </div>
+            <div class="error-details">
+                درخواست برای صفحه‌ای غیر موجود
+            </div>
+        {% elif error == 'خطای سرور' %}
+            <div class="error-code">500</div>
+            <div class="error-title">خطای سرور</div>
+            <div class="error-message">
+                عذرخواهی می‌کنیم! یک خطای داخلی در سرور رخ داده است. لطفاً بعداً دوباره تلاش کنید.
+            </div>
+            <div class="error-details">
+                یک خطای غیر منتظره رخ داده است
+            </div>
+        {% else %}
+            <div class="error-code">{{ status_code }}</div>
+            <div class="error-title">خطا</div>
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <div class="error-buttons">
+            <a href="/" class="btn btn-primary">بازگشت به صفحه اول</a>
+            <a href="javascript:history.back()" class="btn btn-secondary">بازگشت به صفحه قبل</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        .monthly-chart-container {
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .chart-canvas-container {
+            position: relative;
+            height: 450px;
+            width: 100%;
+        }
+        
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .legend-income {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .legend-expense {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        @media (max-width: 768px) {
+            .monthly-chart-container {
+                padding: 15px;
+            }
+            
+            .chart-canvas-container {
+                height: 300px;
+            }
+            
+            .chart-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% if original %}
+        <div class="monthly-chart-container">
+            <div class="chart-title">
+                📊 نمودار درآمد و هزینه ماهانه
+            </div>
+            
+            <div class="chart-wrapper">
+                <div class="chart-canvas-container">
+                    <canvas id="monthlyFinancialChart"></canvas>
+                </div>
+                
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-income"></div>
+                        <span>درآمد</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-expense"></div>
+                        <span>هزینه</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {{ block.super }}
+    
+    {% if original %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const chartDataJson = '{{ chart_data_json|escapejs }}';
+                
+                if (chartDataJson && chartDataJson.trim()) {
+                    try {
+                        const chartData = JSON.parse(chartDataJson);
+                        const ctx = document.getElementById('monthlyFinancialChart');
+                        
+                        if (ctx) {
+                            const chartInstance = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: chartData.labels,
+                                    datasets: chartData.datasets.map((dataset, index) => ({
+                                        ...dataset,
+                                        borderRadius: 8,
+                                        borderSkipped: false,
+                                        borderWidth: 0
+                                    }))
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            display: false,
+                                            position: 'top'
+                                        },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                            padding: 15,
+                                            titleFont: { size: 14, weight: 'bold' },
+                                            bodyFont: { size: 13 },
+                                            borderColor: '#ddd',
+                                            borderWidth: 1,
+                                            displayColors: true,
+                                            callbacks: {
+                                                label: function(context) {
+                                                    let value = context.parsed.y;
+                                                    let formatted = new Intl.NumberFormat('fa-IR', {
+                                                        style: 'currency',
+                                                        currency: 'IRR',
+                                                        maximumFractionDigits: 0,
+                                                        notation: 'standard'
+                                                    }).format(value);
+                                                    return context.dataset.label + ': ' + formatted;
+                                                },
+                                                afterLabel: function(context) {
+                                                    if (context.datasetIndex === 0 && context.dataIndex < context.chart.data.datasets[1].data.length) {
+                                                        let income = context.parsed.y;
+                                                        let expense = context.chart.data.datasets[1].data[context.dataIndex];
+                                                        let profit = income - expense;
+                                                        let formattedProfit = new Intl.NumberFormat('fa-IR', {
+                                                            style: 'currency',
+                                                            currency: 'IRR',
+                                                            maximumFractionDigits: 0
+                                                        }).format(profit);
+                                                        return 'سود: ' + formattedProfit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            stacked: false,
+                                            grid: {
+                                                display: true,
+                                                drawBorder: false,
+                                                color: 'rgba(0, 0, 0, 0.06)',
+                                                lineWidth: 1
+                                            },
+                                            ticks: {
+                                                font: { size: 12, weight: '500' },
+                                                color: '#666',
+                                                padding: 10
+                                            }
+                                        },
+                                        y: {
+                                            stacked: false,
+                                            beginAtZero: true,
+                                            grid: {
+                                                display: true,
+                                                drawBorder: false,
+                                                color: 'rgba(0, 0, 0, 0.06)'
+                                            },
+                                            ticks: {
+                                                font: { size: 11 },
+                                                color: '#666',
+                                                callback: function(value) {
+                                                    if (value === 0) return '0';
+                                                    return new Intl.NumberFormat('fa-IR', {
+                                                        notation: 'compact',
+                                                        compactDisplay: 'short',
+                                                        maximumFractionDigits: 1
+                                                    }).format(value);
+                                                },
+                                                padding: 10
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.error('خطا در تحلیل داده‌های نمودار:', e);
+                    }
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock %}

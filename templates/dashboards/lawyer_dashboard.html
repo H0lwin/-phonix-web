@@ -1,0 +1,290 @@
+{% extends "dashboards/base_dashboard.html" %}
+
+{% block tabs_nav %}
+<!-- تب های وکیل -->
+<button class="tab-nav-btn active" data-tab="overview">
+    <span class="tab-nav-icon">📊</span>
+    <span class="tab-nav-text">نمای کلی</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="attendance">
+    <span class="tab-nav-icon">🕐</span>
+    <span class="tab-nav-text">حضور و غیاب</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="leave">
+    <span class="tab-nav-icon">🏖️</span>
+    <span class="tab-nav-text">درخواست مرخصی</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="cases">
+    <span class="tab-nav-icon">📋</span>
+    <span class="tab-nav-text">پرونده‌ها</span>
+</button>
+
+<!-- پیوند صفحه اول -->
+<a href="{% url 'core:index' %}" class="nav-item">
+    <span class="nav-icon">🏠</span>
+    <span>صفحه اول</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-tabs">
+    <!-- بخش: نمای کلی -->
+    <div class="tab-content active" id="overview-tab">
+        <div class="tab-header">
+            <h2>نمای کلی</h2>
+        </div>
+
+        <!-- ردیف آمار -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ total_assigned }}</p>
+                    <p class="stat-label">کل پرونده‌های من</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚙️</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ in_progress_cases }}</p>
+                    <p class="stat-label">در حال بررسی</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ completed_cases }}</p>
+                    <p class="stat-label">تکمیل‌شده</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش پرونده‌های من -->
+        <div class="section-full">
+            <div class="section-header">
+                <h2>پرونده‌های من</h2>
+            </div>
+
+            <div class="cases-list">
+                {% for case in recent_cases %}
+                <div class="case-card">
+                    <div class="case-header">
+                        <h3>{{ case.title }}</h3>
+                        <span class="case-number">{{ case.case_number }}</span>
+                    </div>
+                    
+                    <p class="case-description">{{ case.description|truncatewords:20 }}</p>
+                    
+                    <div class="case-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">وضعیت:</span>
+                            <span class="badge status-{{ case.status }}">
+                                {% if case.status == 'pending' %}
+                                    در انتظار
+                                {% elif case.status == 'in_progress' %}
+                                    در حال بررسی
+                                {% elif case.status == 'completed' %}
+                                    تکمیل‌شده
+                                {% else %}
+                                    بسته‌شده
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">تاریخ ایجاد:</span>
+                            <span>{{ case.created_at|date:"Y-m-d" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="case-actions">
+                        <a href="{% url 'admin:core_casefile_change' case.pk %}" class="btn btn-small btn-primary">مشاهده جزئیات</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p class="empty-icon">📭</p>
+                    <p class="empty-text">هیچ پرونده‌ای به شما اختصاص داده نشده است</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- آمار سریع -->
+        <div class="quick-stats">
+            <h3>آمار سریع</h3>
+            <div class="stats-detail">
+                <div class="stat-detail-item">
+                    <span class="stat-label">میانگین پرونده‌های فعال:</span>
+                    <span class="stat-value-sm">{{ in_progress_cases }}</span>
+                </div>
+                <div class="stat-detail-item">
+                    <span class="stat-label">درصد تکمیل:</span>
+                    <span class="stat-value-sm">
+                        {% if total_assigned > 0 %}
+                            {{ completed_cases|add:0|mul:100|div:total_assigned|floatformat:0 }}%
+                        {% else %}
+                            ۰%
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: حضور و غیاب -->
+    <div class="tab-content" id="attendance-tab">
+        <div class="tab-header">
+            <h2>🕐 ثبت حضور و غیاب</h2>
+        </div>
+
+        <!-- ستاتوس امروز -->
+        <div class="attendance-status">
+            <div class="status-card">
+                <div class="status-content">
+                    <h3>وضعیت امروز</h3>
+                    <div class="status-info" id="attendanceStatus">
+                        <p class="loading-text">درحال بارگذاری...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- دکمه‌های ورود و خروج -->
+        <div class="attendance-actions">
+            <button id="checkInBtn" class="btn btn-success btn-lg" style="display: none;">
+                <span class="btn-icon">✅</span>
+                <span class="btn-text">ورود به سیستم</span>
+            </button>
+            <button id="checkOutBtn" class="btn btn-danger btn-lg" style="display: none;">
+                <span class="btn-icon">🚪</span>
+                <span class="btn-text">خروج از سیستم</span>
+            </button>
+            <div id="actionMessage" class="message-box" style="display: none;"></div>
+        </div>
+
+        <!-- تاریخچه حضور هفتگی -->
+        <div class="section-full">
+            <div class="section-header">
+                <h2>تاریخچه حضور (۷ روز اخیر)</h2>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table attendance-table">
+                    <thead>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>زمان ورود</th>
+                            <th>زمان خروج</th>
+                            <th>مدت کار</th>
+                            <th>اضافه‌کاری</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTable">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">درحال بارگذاری...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- آمار حضور ماهانه -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <p class="stat-value" id="totalDays">-</p>
+                    <p class="stat-label">روز حضور</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-info">
+                    <p class="stat-value" id="totalHours">-</p>
+                    <p class="stat-label">کل ساعات کار</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-info">
+                    <p class="stat-value" id="totalOvertime">-</p>
+                    <p class="stat-label">اضافه‌کاری</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: درخواست مرخصی -->
+    <div class="tab-content" id="leave-tab">
+        <div class="tab-header">
+            <h2>🏖️ درخواست مرخصی</h2>
+        </div>
+
+        <div style="text-align: center; padding: 40px;">
+            <p style="font-size: 18px; margin-bottom: 30px;">برای درخواست مرخصی، لطفاً به صفحه درخواست بروید</p>
+            <a href="{% url 'core:lawyer_leave_request' %}" class="btn btn-primary btn-lg">
+                <span class="btn-icon">📋</span>
+                <span class="btn-text">درخواست مرخصی جدید</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- بخش: پرونده‌ها -->
+    <div class="tab-content" id="cases-tab">
+        <div class="tab-header">
+            <h2>پرونده‌های من</h2>
+        </div>
+
+        <div class="cases-list">
+            {% for case in recent_cases %}
+            <div class="case-card">
+                <div class="case-header">
+                    <h3>{{ case.title }}</h3>
+                    <span class="case-number">{{ case.case_number }}</span>
+                </div>
+                
+                <p class="case-description">{{ case.description|truncatewords:20 }}</p>
+                
+                <div class="case-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">وضعیت:</span>
+                        <span class="badge status-{{ case.status }}">
+                            {% if case.status == 'pending' %}
+                                در انتظار
+                            {% elif case.status == 'in_progress' %}
+                                در حال بررسی
+                            {% elif case.status == 'completed' %}
+                                تکمیل‌شده
+                            {% else %}
+                                بسته‌شده
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">تاریخ ایجاد:</span>
+                        <span>{{ case.created_at|date:"Y-m-d" }}</span>
+                    </div>
+                </div>
+
+                <div class="case-actions">
+                    <a href="{% url 'admin:core_casefile_change' case.pk %}" class="btn btn-small btn-primary">مشاهده جزئیات</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p class="empty-icon">📭</p>
+                <p class="empty-text">هیچ پرونده‌ای به شما اختصاص داده نشده است</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

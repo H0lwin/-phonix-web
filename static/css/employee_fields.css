@@ -1,0 +1,549 @@
+/* ========================================
+   Employee Fields Styling - Form Inputs Fix
+   ======================================== */
+
+/* Light Mode */
+:root {
+    --input-bg-light: #ffffff;
+    --input-border-light: #d1d5db;
+    --input-text-light: #1f2937;
+    --input-placeholder-light: #9ca3af;
+    --input-focus-border-light: #3b82f6;
+    --input-focus-ring-light: rgba(59, 130, 246, 0.1);
+    
+    --input-bg-dark: #1f2937;
+    --input-border-dark: #4b5563;
+    --input-text-dark: #f3f4f6;
+    --input-placeholder-dark: #9ca3af;
+    --input-focus-border-dark: #60a5fa;
+    --input-focus-ring-dark: rgba(96, 165, 250, 0.1);
+}
+
+/* ========================================
+   INPUT, SELECT, TEXTAREA - Light Mode
+   ======================================== */
+
+/* Default light mode */
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+textarea,
+select {
+    background-color: var(--input-bg-light);
+    border: 1.5px solid var(--input-border-light);
+    color: var(--input-text-light);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="url"]::placeholder,
+input[type="number"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+    color: var(--input-placeholder-light);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--input-focus-border-light);
+    box-shadow: 0 0 0 3px var(--input-focus-ring-light);
+    background-color: var(--input-bg-light);
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    input[type="text"],
+    input[type="email"],
+    input[type="url"],
+    input[type="number"],
+    input[type="password"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    textarea,
+    select {
+        background-color: var(--input-bg-dark);
+        border-color: var(--input-border-dark);
+        color: var(--input-text-dark);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="email"]::placeholder,
+    input[type="url"]::placeholder,
+    input[type="number"]::placeholder,
+    input[type="password"]::placeholder,
+    textarea::placeholder {
+        color: var(--input-placeholder-dark);
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="url"]:focus,
+    input[type="number"]:focus,
+    input[type="password"]:focus,
+    input[type="date"]:focus,
+    input[type="time"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="month"]:focus,
+    input[type="week"]:focus,
+    textarea:focus,
+    select:focus {
+        border-color: var(--input-focus-border-dark);
+        box-shadow: 0 0 0 3px var(--input-focus-ring-dark);
+        background-color: var(--input-bg-dark);
+    }
+}
+
+/* ========================================
+   Django Admin Specific Inputs
+   ======================================== */
+
+/* Text inputs in Django forms */
+.module input[type="text"],
+.module input[type="email"],
+.module input[type="url"],
+.module input[type="number"],
+.module input[type="password"],
+.module input[type="date"],
+.module input[type="time"],
+.module input[type="datetime-local"],
+.module textarea,
+.module select {
+    background-color: var(--input-bg-light);
+    border-color: var(--input-border-light);
+    color: var(--input-text-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .module input[type="text"],
+    .module input[type="email"],
+    .module input[type="url"],
+    .module input[type="number"],
+    .module input[type="password"],
+    .module input[type="date"],
+    .module input[type="time"],
+    .module input[type="datetime-local"],
+    .module textarea,
+    .module select {
+        background-color: var(--input-bg-dark);
+        border-color: var(--input-border-dark);
+        color: var(--input-text-dark);
+    }
+}
+
+/* ========================================
+   Unfold-specific Input Styling
+   ======================================== */
+
+/* Targeting Unfold form fields */
+[class*="vField"],
+[class*="admin"] input,
+[class*="admin"] select,
+[class*="admin"] textarea {
+    background-color: var(--input-bg-light) !important;
+    border: 1.5px solid var(--input-border-light) !important;
+    color: var(--input-text-light) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [class*="vField"],
+    [class*="admin"] input,
+    [class*="admin"] select,
+    [class*="admin"] textarea {
+        background-color: var(--input-bg-dark) !important;
+        border-color: var(--input-border-dark) !important;
+        color: var(--input-text-dark) !important;
+    }
+}
+
+/* Fix for readonly fields */
+input[readonly],
+textarea[readonly],
+select[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (prefers-color-scheme: dark) {
+    input[readonly],
+    textarea[readonly],
+    select[disabled] {
+        background-color: #111827 !important;
+        color: #9ca3af !important;
+    }
+}
+
+/* ========================================
+   Fieldset and Form Layout
+   ======================================== */
+
+fieldset {
+    border: 1px solid var(--input-border-light);
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    fieldset {
+        border-color: var(--input-border-dark);
+        background-color: #111827;
+    }
+}
+
+fieldset > legend {
+    font-weight: 600;
+    color: var(--input-text-light);
+    padding: 0 0.5rem;
+    margin-left: -0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    fieldset > legend {
+        color: var(--input-text-dark);
+    }
+}
+
+/* ========================================
+   Label Styling
+   ======================================== */
+
+label {
+    color: var(--input-text-light);
+    font-weight: 500;
+    font-size: 0.9375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    label {
+        color: var(--input-text-dark);
+    }
+}
+
+/* Required field indicator */
+label.required::after,
+.required label::after {
+    content: " *";
+    color: #ef4444;
+    font-weight: bold;
+}
+
+/* ========================================
+   Help Text
+   ======================================== */
+
+.help,
+.helptext,
+[class*="help-text"] {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .help,
+    .helptext,
+    [class*="help-text"] {
+        color: #9ca3af;
+    }
+}
+
+/* ========================================
+   Error Messages
+   ======================================== */
+
+.errorlist,
+[class*="error"] {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .errorlist,
+    [class*="error"] {
+        color: #f87171;
+    }
+}
+
+/* Error field styling */
+input.error,
+textarea.error,
+select.error {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    input.error,
+    textarea.error,
+    select.error {
+        border-color: #f87171 !important;
+        background-color: #7f1d1d !important;
+        color: #fee2e2 !important;
+    }
+}
+
+/* ========================================
+   Buttons in Forms
+   ======================================== */
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+    background-color: #3b82f6;
+    color: white;
+    border: 1px solid #3b82f6;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+    button,
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"] {
+        background-color: #1e40af;
+        border-color: #1e40af;
+    }
+
+    button:hover,
+    input[type="button"]:hover,
+    input[type="submit"]:hover,
+    input[type="reset"]:hover {
+        background-color: #1e3a8a;
+        border-color: #1e3a8a;
+    }
+}
+
+/* Delete button */
+a.deletelink,
+input[type="submit"].deletelink {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: white !important;
+}
+
+a.deletelink:hover,
+input[type="submit"].deletelink:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* ========================================
+   Checkboxes and Radio Buttons
+   ======================================== */
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #3b82f6;
+    cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+    input[type="checkbox"],
+    input[type="radio"] {
+        accent-color: #60a5fa;
+    }
+}
+
+/* ========================================
+   Employee Admin Specific
+   ======================================== */
+
+/* Ensure proper field visibility in Employee form */
+#id_national_id,
+#id_birth_date,
+#id_gender,
+#id_phone,
+#id_address,
+#id_branch,
+#id_job_title,
+#id_hire_date,
+#id_contract_type,
+#id_employment_status,
+#id_contract_end_date,
+#id_base_salary,
+#id_benefits,
+#id_payment_method,
+#id_bank_account_number,
+#id_insurance_info,
+#id_education,
+#id_profile_picture,
+#id_internal_notes,
+#id_personnel_id,
+#id_user,
+#id_password_field {
+    background-color: var(--input-bg-light) !important;
+    border: 1.5px solid var(--input-border-light) !important;
+    color: var(--input-text-light) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    #id_national_id,
+    #id_birth_date,
+    #id_gender,
+    #id_phone,
+    #id_address,
+    #id_branch,
+    #id_job_title,
+    #id_hire_date,
+    #id_contract_type,
+    #id_employment_status,
+    #id_contract_end_date,
+    #id_base_salary,
+    #id_benefits,
+    #id_payment_method,
+    #id_bank_account_number,
+    #id_insurance_info,
+    #id_education,
+    #id_profile_picture,
+    #id_internal_notes,
+    #id_personnel_id,
+    #id_user,
+    #id_password_field {
+        background-color: var(--input-bg-dark) !important;
+        border-color: var(--input-border-dark) !important;
+        color: var(--input-text-dark) !important;
+    }
+}
+
+/* Focus state for Employee fields */
+#id_national_id:focus,
+#id_birth_date:focus,
+#id_gender:focus,
+#id_phone:focus,
+#id_address:focus,
+#id_branch:focus,
+#id_job_title:focus,
+#id_hire_date:focus,
+#id_contract_type:focus,
+#id_employment_status:focus,
+#id_contract_end_date:focus,
+#id_base_salary:focus,
+#id_benefits:focus,
+#id_payment_method:focus,
+#id_bank_account_number:focus,
+#id_insurance_info:focus,
+#id_education:focus,
+#id_profile_picture:focus,
+#id_internal_notes:focus,
+#id_personnel_id:focus,
+#id_user:focus,
+#id_password_field:focus {
+    border-color: var(--input-focus-border-light);
+    box-shadow: 0 0 0 3px var(--input-focus-ring-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    #id_national_id:focus,
+    #id_birth_date:focus,
+    #id_gender:focus,
+    #id_phone:focus,
+    #id_address:focus,
+    #id_branch:focus,
+    #id_job_title:focus,
+    #id_hire_date:focus,
+    #id_contract_type:focus,
+    #id_employment_status:focus,
+    #id_contract_end_date:focus,
+    #id_base_salary:focus,
+    #id_benefits:focus,
+    #id_payment_method:focus,
+    #id_bank_account_number:focus,
+    #id_insurance_info:focus,
+    #id_education:focus,
+    #id_profile_picture:focus,
+    #id_internal_notes:focus,
+    #id_personnel_id:focus,
+    #id_user:focus,
+    #id_password_field:focus {
+        border-color: var(--input-focus-border-dark);
+        box-shadow: 0 0 0 3px var(--input-focus-ring-dark);
+    }
+}
+
+/* ========================================
+   Inline Related Fields
+   ======================================== */
+
+.inline-related fieldset {
+    margin: 1rem 0;
+}
+
+.inline-related legend {
+    background-color: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .inline-related legend {
+        background-color: #1f2937;
+        color: var(--input-text-dark);
+    }
+}
+
+/* ========================================
+   Tabular Inline
+   ======================================== */
+
+.tabular.inline-related tbody tr input,
+.tabular.inline-related tbody tr select,
+.tabular.inline-related tbody tr textarea {
+    background-color: var(--input-bg-light) !important;
+    border-color: var(--input-border-light) !important;
+    color: var(--input-text-light) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tabular.inline-related tbody tr input,
+    .tabular.inline-related tbody tr select,
+    .tabular.inline-related tbody tr textarea {
+        background-color: var(--input-bg-dark) !important;
+        border-color: var(--input-border-dark) !important;
+        color: var(--input-text-dark) !important;
+    }
+}

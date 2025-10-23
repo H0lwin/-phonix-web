@@ -1,0 +1,33 @@
+# ===== CORE DEPENDENCIES =====
+Django==4.2.7
+python-dotenv==1.0.0
+
+# ===== DATABASE DRIVERS =====
+mysqlclient==2.2.7
+mysql-connector-python==9.4.0
+# Uncomment for PostgreSQL support
+# psycopg2-binary==2.9.9
+
+# ===== LOCALIZATION =====
+django-jalali==7.4.0
+jdatetime
+
+# ===== UI CUSTOMIZATION =====
+django-unfold==0.68.0
+django-admincharts==0.4.1
+
+# ===== MONEY & BABEL =====
+django-money==3.4.0
+babel==2.13.0
+
+# ===== SECURITY & LOGGING =====
+django-cors-headers==4.3.1
+bleach==6.1.0
+Werkzeug==3.0.1
+
+# ===== PRODUCTION SERVERS =====
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# ===== MONITORING & PERFORMANCE =====
+django-health-check==3.16.7

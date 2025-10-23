@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - فونیکس</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- بخش کناری -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="logo-text">⚖️ فونیکس</h2>
+                <span class="role-badge">{{ user.profile.get_role_display }}</span>
+            </div>
+
+            <!-- ناوبری تب ها -->
+            <nav class="sidebar-nav">
+                {% block tabs_nav %}{% endblock %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user.first_name|first }}{{ user.last_name|first }}
+                    </div>
+                    <div class="user-details">
+                        <p class="user-name">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="user-email">{{ user.email }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'admin:logout' %}" class="btn btn-logout">خروج</a>
+            </div>
+        </aside>
+
+        <!-- محتوای اصلی -->
+        <main class="dashboard-main">
+            <!-- سرصفحه -->
+            <header class="dashboard-header">
+                <h1>{{ title }}</h1>
+                <div class="header-info">
+                    <span class="date-time" id="dateTime"></span>
+                </div>
+            </header>
+
+            <!-- محتوا -->
+            <div class="dashboard-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

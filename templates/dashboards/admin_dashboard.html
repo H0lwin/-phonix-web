@@ -1,0 +1,877 @@
+{% extends "dashboards/base_dashboard.html" %}
+{% load static %}
+
+{% block tabs_nav %}
+<!-- تب های اصلی مدیر -->
+<button class="tab-nav-btn active" data-tab="overview">
+    <span class="tab-nav-icon">📊</span>
+    <span class="tab-nav-text">نمای کلی</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="hr">
+    <span class="tab-nav-icon">👥</span>
+    <span class="tab-nav-text">مدیریت انسانی</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="finance">
+    <span class="tab-nav-icon">💰</span>
+    <span class="tab-nav-text">مدیریت مالی</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="loans">
+    <span class="tab-nav-icon">🏦</span>
+    <span class="tab-nav-text">وام‌ها</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="services">
+    <span class="tab-nav-icon">🛠️</span>
+    <span class="tab-nav-text">خدمات</span>
+</button>
+
+<button class="tab-nav-btn" data-tab="cases">
+    <span class="tab-nav-icon">📋</span>
+    <span class="tab-nav-text">پرونده‌ها</span>
+</button>
+
+<hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1rem 0;">
+
+<!-- پیوندهای ناوبری -->
+<a href="{% url 'core:index' %}" class="nav-item">
+    <span class="nav-icon">🏠</span>
+    <span>صفحه اول</span>
+</a>
+
+<a href="{% url 'admin:index' %}" class="nav-item">
+    <span class="nav-icon">⚙️</span>
+    <span>مدیریت سیستم</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-tabs">
+    <!-- بخش: نمای کلی -->
+    <div class="tab-content active" id="overview-tab">
+        <div class="tab-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h2>نمای کلی</h2>
+                <div style="text-align: right;">
+                    <p style="margin: 0; font-size: 14px; color: #888;">خوش امدید</p>
+                    <p style="margin: 0; font-size: 16px; font-weight: bold;">{{ user.first_name }} {{ user.last_name }} ({{ user_role }})</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- معیارهای کلیدی -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ monthly_profit|floatformat:0 }}</p>
+                    <p class="stat-label">سود این ماه</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ loans_sold_this_month }}</p>
+                    <p class="stat-label">وام‌های فروش رفته</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🏦</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ available_loans }}</p>
+                    <p class="stat-label">وام‌های موجود</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">❌</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ absent_employees|length }}</p>
+                    <p class="stat-label">افراد غائب امروز</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ردیف آمار دوم -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon users">👥</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ total_users }}</p>
+                    <p class="stat-label">کل کاربران</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon cases">📋</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ total_cases }}</p>
+                    <p class="stat-label">کل پرونده‌ها</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon lawyers">⚖️</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ total_lawyers }}</p>
+                    <p class="stat-label">تعداد وکلا</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon employees">💼</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ total_employees }}</p>
+                    <p class="stat-label">تعداد کارمندان</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon pending">⏳</div>
+                <div class="stat-info">
+                    <p class="stat-value">{{ pending_cases }}</p>
+                    <p class="stat-label">پرونده‌های در انتظار</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🔐</div>
+                <div class="stat-info">
+                    <p class="stat-value">{% if session_expiry %}{{ session_expiry|date:"H:i" }}{% else %}---{% endif %}</p>
+                    <p class="stat-label">مهلت جلسه تا</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش فعالیت های اخیر -->
+        <div class="section-full">
+            <div class="section-header">
+                <h2>فعالیت‌های اخیر</h2>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>کارمند</th>
+                            <th>عنوان فعالیت</th>
+                            <th>ساعت‌های کاری</th>
+                            <th>تاریخ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr>
+                            <td>{{ activity.employee.user.first_name }} {{ activity.employee.user.last_name }}</td>
+                            <td>{{ activity.title }}</td>
+                            <td>{{ activity.hours_worked }}</td>
+                            <td>{{ activity.date|date:"Y-m-d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">هیچ فعالیتی ثبت نشده است</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- بخش کارمندان غائب -->
+        {% if absent_employees %}
+        <div class="section-full">
+            <div class="section-header">
+                <h2>افراد غائب امروز</h2>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>نام کارمند</th>
+                            <th>موضع</th>
+                            <th>یادداشت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in absent_employees %}
+                        <tr>
+                            <td>{{ attendance.employee.user.first_name }} {{ attendance.employee.user.last_name }}</td>
+                            <td><span class="badge status-absent">غایب</span></td>
+                            <td>{{ attendance.notes|default:"بدون یادداشت" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- بخش آخرین پرونده‌ها -->
+        <div class="section-full">
+            <div class="section-header">
+                <h2>آخرین پرونده‌ها</h2>
+                <a href="{% url 'admin:index' %}" class="btn btn-small">مشاهده همه</a>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>شماره پرونده</th>
+                            <th>عنوان</th>
+                            <th>وکیل مسئول</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ ایجاد</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in recent_cases %}
+                        <tr>
+                            <td><strong>{{ case.case_number }}</strong></td>
+                            <td>{{ case.title }}</td>
+                            <td>
+                                {% if case.assigned_lawyer %}
+                                    {{ case.assigned_lawyer.first_name }} {{ case.assigned_lawyer.last_name }}
+                                {% else %}
+                                    <span class="badge unassigned">تعیین نشده</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge status-{{ case.status }}">
+                                    {% if case.status == 'pending' %}
+                                        در انتظار
+                                    {% elif case.status == 'in_progress' %}
+                                        در حال بررسی
+                                    {% elif case.status == 'completed' %}
+                                        تکمیل‌شده
+                                    {% else %}
+                                        بسته‌شده
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>{{ case.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">هیچ پرونده‌ای موجود نیست</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- اقدامات سریع -->
+        <div class="quick-actions">
+            <h3>اقدامات سریع</h3>
+            <div class="actions-grid">
+                <a href="/admin/core/casefile/add/" class="action-btn">
+                    <span>➕</span>
+                    <span>پرونده جدید</span>
+                </a>
+                <a href="/admin/auth/user/add/" class="action-btn">
+                    <span>👤</span>
+                    <span>کاربر جدید</span>
+                </a>
+                <a href="/admin/" class="action-btn">
+                    <span>⚙️</span>
+                    <span>مدیریت</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: مدیریت انسانی -->
+    <div class="tab-content" id="hr-tab">
+        <div class="tab-header">
+            <h2>مدیریت انسانی</h2>
+            <div class="subtabs-nav">
+                <button class="subtab-btn active" data-subtab="hr-employees">👤 مدیریت کارمندان</button>
+                <button class="subtab-btn" data-subtab="hr-branches">🏢 مدیریت شعبه‌ها</button>
+                <button class="subtab-btn" data-subtab="hr-attendance">✓ حضور و غیاب</button>
+                <button class="subtab-btn" data-subtab="hr-reports">📈 گزارش فعالیت</button>
+            </div>
+        </div>
+
+        <!-- محتوای تب های فرعی HR -->
+        <div class="subtab-content active" id="hr-employees-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>مدیریت کارمندان</h3>
+                    <a href="/admin/core/employee/add/" class="btn btn-small">➕ کارمند جدید</a>
+                </div>
+                {% if employees %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>نام</th>
+                                <th>سمت</th>
+                                <th>شعبه</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in employees %}
+                            <tr>
+                                <td>{{ emp.user.first_name }} {{ emp.user.last_name }}</td>
+                                <td>{{ emp.get_job_title_display }}</td>
+                                <td>{{ emp.branch.name|default:"---" }}</td>
+                                <td><span class="badge" style="background: {% if emp.is_active %}#28a745{% else %}#dc3545{% endif %}">{% if emp.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ کارمندی ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="hr-branches-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>مدیریت شعبه‌ها</h3>
+                    <a href="/admin/core/branch/add/" class="btn btn-small">➕ شعبه جدید</a>
+                </div>
+                {% if branches %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>نام شعبه</th>
+                                <th>آدرس</th>
+                                <th>تلفن</th>
+                                <th>مدیر</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for branch in branches %}
+                            <tr>
+                                <td>{{ branch.name }}</td>
+                                <td>{{ branch.address }}</td>
+                                <td>{{ branch.phone }}</td>
+                                <td>{{ branch.manager.first_name|default:"---" }} {{ branch.manager.last_name|default:"" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ شعبه‌ای ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="hr-attendance-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>حضور و غیاب</h3>
+                </div>
+                {% if attendances %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>کارمند</th>
+                                <th>تاریخ</th>
+                                <th>وضعیت</th>
+                                <th>یادداشت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendance in attendances %}
+                            <tr>
+                                <td>{{ attendance.employee.user.first_name }} {{ attendance.employee.user.last_name }}</td>
+                                <td>{{ attendance.date|date:"Y-m-d" }}</td>
+                                <td><span class="badge status-{{ attendance.status }}">{{ attendance.get_status_display }}</span></td>
+                                <td>{{ attendance.notes|default:"---" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ رکورد حضور و غیابی موجود نیست</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="hr-reports-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>گزارش فعالیت</h3>
+                </div>
+                {% if recent_activities %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>کارمند</th>
+                                <th>عنوان</th>
+                                <th>تاریخ</th>
+                                <th>ساعت‌های کاری</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.employee.user.first_name }} {{ activity.employee.user.last_name }}</td>
+                                <td>{{ activity.title }}</td>
+                                <td>{{ activity.date|date:"Y-m-d" }}</td>
+                                <td>{{ activity.hours_worked }} ساعت</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ گزارش فعالیتی موجود نیست</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: مدیریت مالی -->
+    <div class="tab-content" id="finance-tab">
+        <div class="tab-header">
+            <h2>مدیریت مالی</h2>
+            <div class="subtabs-nav">
+                <button class="subtab-btn active" data-subtab="finance-report">📊 گزارش مالی</button>
+                <button class="subtab-btn" data-subtab="finance-revenues">📈 درآمدها</button>
+                <button class="subtab-btn" data-subtab="finance-expenses">📉 هزینه‌ها</button>
+            </div>
+        </div>
+
+        <div class="subtab-content active" id="finance-report-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>گزارش مالی</h3>
+                </div>
+                
+                <!-- کارت های معیارهای کلیدی -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <p class="stat-value">{{ monthly_profit|floatformat:0 }}</p>
+                            <p class="stat-label">سود خالص ماه جاری</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💳</div>
+                        <div class="stat-info">
+                            <p class="stat-value">{{ revenues|length }}</p>
+                            <p class="stat-label">تعداد درآمدها</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-info">
+                            <p class="stat-value">{{ expenses|length }}</p>
+                            <p class="stat-label">تعداد هزینه‌ها</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- نمودار 12 ماهه -->
+                <div class="chart-container" style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 20px; color: #2d3748; font-weight: 600;">گزارش مالی 12 ماهه (درآمد، هزینه و سود)</h3>
+                    <canvas id="financialChart" style="max-height: 300px;"></canvas>
+                </div>
+
+                <script>
+                    // داده های نمودار از زمینه Django
+                    const months = JSON.parse('{{ months_labels|escapejs }}');
+                    const revenues = JSON.parse('{{ months_revenue|escapejs }}');
+                    const expenses = JSON.parse('{{ months_expense|escapejs }}');
+                    const profits = JSON.parse('{{ months_profit|escapejs }}');
+
+                    // راه اندازی نمودار
+                    const ctx = document.getElementById('financialChart').getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: months,
+                            datasets: [
+                                {
+                                    label: 'درآمد',
+                                    data: revenues,
+                                    borderColor: '#667eea',
+                                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                    borderWidth: 2.5,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    pointBackgroundColor: '#667eea',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                },
+                                {
+                                    label: 'هزینه',
+                                    data: expenses,
+                                    borderColor: '#f56565',
+                                    backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                                    borderWidth: 2.5,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    pointBackgroundColor: '#f56565',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                },
+                                {
+                                    label: 'سود خالص',
+                                    data: profits,
+                                    borderColor: '#48bb78',
+                                    backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                                    borderWidth: 2.5,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    pointBackgroundColor: '#48bb78',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        padding: 15,
+                                        font: {
+                                            size: 12,
+                                            weight: 'bold',
+                                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                        },
+                                        color: '#2d3748',
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: { size: 12, weight: 'bold' },
+                                    bodyFont: { size: 11 },
+                                    borderColor: '#fff',
+                                    borderWidth: 1,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += new Intl.NumberFormat('fa-IR', {
+                                                    style: 'currency',
+                                                    currency: 'IRR',
+                                                    minimumFractionDigits: 0
+                                                }).format(context.parsed.y);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        borderColor: '#e2e8f0',
+                                    },
+                                    ticks: {
+                                        color: '#718096',
+                                        font: { size: 11 }
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        borderColor: '#e2e8f0',
+                                    },
+                                    ticks: {
+                                        color: '#718096',
+                                        font: { size: 11 },
+                                        callback: function(value) {
+                                            return new Intl.NumberFormat('fa-IR', {
+                                                notation: 'compact',
+                                                maximumFractionDigits: 0
+                                            }).format(value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+
+        <div class="subtab-content" id="finance-revenues-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>درآمدها</h3>
+                    <a href="/admin/core/revenue/add/" class="btn btn-small">➕ درآمد جدید</a>
+                </div>
+                {% if revenues %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>عنوان</th>
+                                <th>نوع</th>
+                                <th>مبلغ</th>
+                                <th>تاریخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for revenue in revenues %}
+                            <tr>
+                                <td>{{ revenue.title }}</td>
+                                <td>{{ revenue.get_revenue_type_display }}</td>
+                                <td style="color: #28a745; font-weight: bold;">+ {{ revenue.amount|floatformat:0 }}</td>
+                                <td>{{ revenue.date|date:"Y-m-d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ درآمدی ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="finance-expenses-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>هزینه‌ها</h3>
+                    <a href="/admin/core/expense/add/" class="btn btn-small">➕ هزینه جدید</a>
+                </div>
+                {% if expenses %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>عنوان</th>
+                                <th>نوع</th>
+                                <th>مبلغ</th>
+                                <th>تاریخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in expenses %}
+                            <tr>
+                                <td>{{ expense.title }}</td>
+                                <td>{{ expense.get_expense_type_display }}</td>
+                                <td style="color: #dc3545; font-weight: bold;">- {{ expense.amount|floatformat:0 }}</td>
+                                <td>{{ expense.date|date:"Y-m-d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ هزینه‌ای ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: وام‌ها -->
+    <div class="tab-content" id="loans-tab">
+        <div class="tab-header">
+            <h2>وام‌ها</h2>
+            <div class="subtabs-nav">
+                <button class="subtab-btn active" data-subtab="loans-list">📋 وام‌ها</button>
+                <button class="subtab-btn" data-subtab="loans-buyers">👥 خریداران وام</button>
+                <button class="subtab-btn" data-subtab="loans-creditors">🏦 بستانکاران وام</button>
+            </div>
+        </div>
+
+        <div class="subtab-content active" id="loans-list-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>لیست وام‌ها</h3>
+                    <a href="/admin/core/loan/add/" class="btn btn-small">➕ وام جدید</a>
+                </div>
+                {% if loans %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>شماره وام</th>
+                                <th>مبلغ</th>
+                                <th>نرخ بهره</th>
+                                <th>مدت (ماه)</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td><strong>{{ loan.loan_number }}</strong></td>
+                                <td>{{ loan.amount|floatformat:0 }}</td>
+                                <td>{{ loan.interest_rate }}%</td>
+                                <td>{{ loan.duration_months }}</td>
+                                <td>
+                                    <span class="badge status-{{ loan.status }}">
+                                        {% if loan.status == 'pending' %}
+                                            در انتظار تایید
+                                        {% elif loan.status == 'approved' %}
+                                            تایید شده
+                                        {% elif loan.status == 'active' %}
+                                            فعال
+                                        {% elif loan.status == 'completed' %}
+                                            تکمیل شده
+                                        {% else %}
+                                            رد شده
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ وامی ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="loans-buyers-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>خریداران وام</h3>
+                    <a href="/admin/core/loanbuyer/add/" class="btn btn-small">➕ خریدار جدید</a>
+                </div>
+                {% if loan_buyers %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>نام خریدار</th>
+                                <th>شماره وام</th>
+                                <th>کد ملی</th>
+                                <th>تلفن</th>
+                                <th>پرداخت ماهانه</th>
+                                <th>بدهی باقیمانده</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for buyer in loan_buyers %}
+                            <tr>
+                                <td>{{ buyer.user.first_name }} {{ buyer.user.last_name }}</td>
+                                <td>{{ buyer.loan.loan_number }}</td>
+                                <td>{{ buyer.national_id }}</td>
+                                <td>{{ buyer.phone }}</td>
+                                <td>{{ buyer.monthly_payment|floatformat:0 }}</td>
+                                <td style="color: #dc3545; font-weight: bold;">{{ buyer.remaining_balance|floatformat:0 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ خریداری ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subtab-content" id="loans-creditors-subtab">
+            <div class="section-full">
+                <div class="section-header">
+                    <h3>بستانکاران وام</h3>
+                    <a href="/admin/core/loancreditor/add/" class="btn btn-small">➕ بستانکار جدید</a>
+                </div>
+                {% if loan_creditors %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>نام سازمان</th>
+                                <th>شماره وام</th>
+                                <th>تلفن</th>
+                                <th>مبلغ اعتباری</th>
+                                <th>بدهی باقیمانده</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for creditor in loan_creditors %}
+                            <tr>
+                                <td>{{ creditor.organization_name }}</td>
+                                <td>{{ creditor.loan.loan_number }}</td>
+                                <td>{{ creditor.phone }}</td>
+                                <td>{{ creditor.credit_amount|floatformat:0 }}</td>
+                                <td style="color: #dc3545; font-weight: bold;">{{ creditor.remaining_debt|floatformat:0 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>هیچ بستانکاری ثبت نشده است</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش: خدمات -->
+    <div class="tab-content" id="services-tab">
+        <div class="tab-header">
+            <h2>خدمات</h2>
+        </div>
+        <div class="empty-state">
+            <p>🔄 این بخش در حال توسعه است</p>
+        </div>
+    </div>
+
+    <!-- بخش: پرونده‌ها -->
+    <div class="tab-content" id="cases-tab">
+        <div class="tab-header">
+            <h2>پرونده‌ها</h2>
+        </div>
+        <div class="empty-state">
+            <p>🔄 این بخش در حال توسعه است</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

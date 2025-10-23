@@ -1,0 +1,272 @@
+/* ========================================
+   Employee Admin Form Fields - Theme Support
+   فقط برای فرم کارمند با پشتیبانی تغییر تم
+   ======================================== */
+
+/* ========================================
+   CSS Variables برای هر تم
+   ======================================== */
+
+/* Light Theme */
+html[data-theme="light"] {
+    --emp-input-bg: #ffffff;
+    --emp-input-text: #1f2937;
+    --emp-input-border: #d1d5db;
+    --emp-input-placeholder: #9ca3af;
+    --emp-label-text: #374151;
+    --emp-focus-border: #3b82f6;
+    --emp-focus-ring: rgba(59, 130, 246, 0.1);
+}
+
+/* Dark Theme */
+html[data-theme="dark"] {
+    --emp-input-bg: #1f2937;
+    --emp-input-text: #f3f4f6;
+    --emp-input-border: #4b5563;
+    --emp-input-placeholder: #9ca3af;
+    --emp-label-text: #e5e7eb;
+    --emp-focus-border: #60a5fa;
+    --emp-focus-ring: rgba(96, 165, 250, 0.1);
+}
+
+/* Auto (System Theme) - Default to Light */
+html[data-theme="auto"],
+html:not([data-theme]) {
+    --emp-input-bg: #ffffff;
+    --emp-input-text: #1f2937;
+    --emp-input-border: #d1d5db;
+    --emp-input-placeholder: #9ca3af;
+    --emp-label-text: #374151;
+    --emp-focus-border: #3b82f6;
+    --emp-focus-ring: rgba(59, 130, 246, 0.1);
+}
+
+/* System Dark Mode for "auto" theme */
+@media (prefers-color-scheme: dark) {
+    html[data-theme="auto"] {
+        --emp-input-bg: #1f2937;
+        --emp-input-text: #f3f4f6;
+        --emp-input-border: #4b5563;
+        --emp-input-placeholder: #9ca3af;
+        --emp-label-text: #e5e7eb;
+        --emp-focus-border: #60a5fa;
+        --emp-focus-ring: rgba(96, 165, 250, 0.1);
+    }
+}
+
+/* ========================================
+   Form Inputs Styling
+   ======================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="tel"],
+textarea,
+select {
+    background-color: var(--emp-input-bg) !important;
+    color: var(--emp-input-text) !important;
+    border: 1.5px solid var(--emp-input-border) !important;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--emp-input-placeholder) !important;
+}
+
+/* Focus state */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus,
+input[type="tel"]:focus,
+textarea:focus,
+select:focus {
+    background-color: var(--emp-input-bg) !important;
+    border-color: var(--emp-focus-border) !important;
+    box-shadow: 0 0 0 3px var(--emp-focus-ring) !important;
+    outline: none !important;
+}
+
+/* ========================================
+   Label Styling
+   ======================================== */
+
+label {
+    color: var(--emp-label-text) !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease;
+}
+
+/* Help text */
+.help,
+.helptext,
+[class*="help-text"] {
+    color: var(--emp-input-placeholder) !important;
+    transition: color 0.2s ease;
+}
+
+/* ========================================
+   Error Styling
+   ======================================== */
+
+input.error,
+textarea.error,
+select.error {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+}
+
+html[data-theme="dark"] input.error,
+html[data-theme="dark"] textarea.error,
+html[data-theme="dark"] select.error {
+    border-color: #f87171 !important;
+    background-color: #7f1d1d !important;
+    color: #fee2e2 !important;
+}
+
+/* ========================================
+   Checkboxes & Radio Buttons
+   ======================================== */
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #3b82f6 !important;
+}
+
+html[data-theme="dark"] input[type="checkbox"],
+html[data-theme="dark"] input[type="radio"] {
+    accent-color: #60a5fa !important;
+}
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+button,
+input[type="submit"],
+input[type="button"] {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border: 1px solid #3b82f6 !important;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+html[data-theme="dark"] button,
+html[data-theme="dark"] input[type="submit"],
+html[data-theme="dark"] input[type="button"] {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+}
+
+html[data-theme="dark"] button:hover,
+html[data-theme="dark"] input[type="submit"]:hover,
+html[data-theme="dark"] input[type="button"]:hover {
+    background-color: #1e3a8a !important;
+    border-color: #1e3a8a !important;
+}
+
+/* Delete button */
+.deletelink {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: white !important;
+}
+
+.deletelink:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* ========================================
+   Readonly Fields
+   ======================================== */
+
+input[readonly],
+textarea[readonly],
+select[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+html[data-theme="dark"] input[readonly],
+html[data-theme="dark"] textarea[readonly],
+html[data-theme="dark"] select[disabled] {
+    background-color: #111827 !important;
+    color: #9ca3af !important;
+}
+
+/* ========================================
+   Select/Dropdown Styling
+   ======================================== */
+
+select {
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem auto;
+    padding-right: 2.5rem;
+}
+
+html[data-theme="light"] select,
+html[data-theme="auto"] select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231f2937' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+html[data-theme="dark"] select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f3f4f6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+/* System dark mode for auto */
+@media (prefers-color-scheme: dark) {
+    html[data-theme="auto"] select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f3f4f6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    }
+}
+
+/* ========================================
+   Error Messages
+   ======================================== */
+
+.errorlist,
+.invalid-feedback,
+[class*="error-message"] {
+    color: #dc2626 !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
+}
+
+html[data-theme="dark"] .errorlist,
+html[data-theme="dark"] .invalid-feedback,
+html[data-theme="dark"] [class*="error-message"] {
+    color: #f87171 !important;
+}

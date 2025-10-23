@@ -1,0 +1,448 @@
+/* ========================================
+   Unfold Employee Admin Form Fix
+   Custom overrides for better visibility
+   ======================================== */
+
+/* Light Mode - Default */
+:root {
+    --unfold-input-bg: #ffffff;
+    --unfold-input-border: #d1d5db;
+    --unfold-input-text: #1f2937;
+    --unfold-input-placeholder: #9ca3af;
+    --unfold-label-text: #374151;
+    
+    --unfold-focus-border: #3b82f6;
+    --unfold-focus-ring: rgba(59, 130, 246, 0.1);
+    --unfold-focus-outline: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --unfold-input-bg: #1f2937;
+        --unfold-input-border: #4b5563;
+        --unfold-input-text: #f3f4f6;
+        --unfold-input-placeholder: #9ca3af;
+        --unfold-label-text: #e5e7eb;
+        
+        --unfold-focus-border: #60a5fa;
+        --unfold-focus-ring: rgba(96, 165, 250, 0.1);
+        --unfold-focus-outline: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+}
+
+/* ========================================
+   Tailwind/Unfold Input Fields Override
+   ======================================== */
+
+/* Base input styling for Unfold */
+[class*="input"],
+[class*="form-control"],
+[type="text"],
+[type="email"],
+[type="url"],
+[type="number"],
+[type="password"],
+[type="date"],
+[type="time"],
+[type="datetime-local"],
+[type="month"],
+[type="week"],
+[type="tel"],
+[type="search"],
+textarea,
+select {
+    background-color: var(--unfold-input-bg) !important;
+    border-color: var(--unfold-input-border) !important;
+    color: var(--unfold-input-text) !important;
+    border-width: 1px !important;
+}
+
+/* Placeholder text */
+::placeholder {
+    color: var(--unfold-input-placeholder) !important;
+}
+
+/* Focus state */
+[type="text"]:focus,
+[type="email"]:focus,
+[type="url"]:focus,
+[type="number"]:focus,
+[type="password"]:focus,
+[type="date"]:focus,
+[type="time"]:focus,
+[type="datetime-local"]:focus,
+[type="month"]:focus,
+[type="week"]:focus,
+[type="tel"]:focus,
+[type="search"]:focus,
+textarea:focus,
+select:focus,
+[class*="input"]:focus,
+[class*="form-control"]:focus {
+    outline: none !important;
+    border-color: var(--unfold-focus-border) !important;
+    box-shadow: var(--unfold-focus-outline) !important;
+    background-color: var(--unfold-input-bg) !important;
+}
+
+/* ========================================
+   Unfold Fieldset Container
+   ======================================== */
+
+.fieldset,
+fieldset,
+[class*="fieldset"],
+[class*="form-section"] {
+    border-color: var(--unfold-input-border) !important;
+    background-color: transparent !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .fieldset,
+    fieldset,
+    [class*="fieldset"],
+    [class*="form-section"] {
+        border-color: var(--unfold-input-border) !important;
+    }
+}
+
+/* Legend/Fieldset title */
+legend,
+.fieldset-title,
+[class*="fieldset-legend"] {
+    color: var(--unfold-label-text) !important;
+    font-weight: 600 !important;
+    background-color: transparent !important;
+}
+
+/* ========================================
+   Label Styling for Unfold
+   ======================================== */
+
+label,
+[class*="label"] {
+    color: var(--unfold-label-text) !important;
+    font-weight: 500 !important;
+    font-size: 0.9375rem !important;
+}
+
+/* Required indicator */
+.required::after,
+[aria-required="true"]::after {
+    content: " *" !important;
+    color: #dc2626 !important;
+    font-weight: bold !important;
+}
+
+/* ========================================
+   Help Text & Error Messages
+   ======================================== */
+
+.help-text,
+.form-text,
+.form-help,
+[class*="help"],
+small {
+    color: #6b7280 !important;
+    font-size: 0.8125rem !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .help-text,
+    .form-text,
+    .form-help,
+    [class*="help"],
+    small {
+        color: #9ca3af !important;
+    }
+}
+
+/* Error styling */
+.error,
+[class*="error"],
+.is-invalid,
+[aria-invalid="true"] {
+    border-color: #dc2626 !important;
+}
+
+.error input,
+.error textarea,
+.error select,
+[class*="error"] input,
+[class*="error"] textarea,
+[class*="error"] select,
+.is-invalid input,
+.is-invalid textarea,
+.is-invalid select {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error input,
+    .error textarea,
+    .error select,
+    [class*="error"] input,
+    [class*="error"] textarea,
+    [class*="error"] select,
+    .is-invalid input,
+    .is-invalid textarea,
+    .is-invalid select {
+        border-color: #f87171 !important;
+        background-color: #7f1d1d !important;
+        color: #fee2e2 !important;
+    }
+}
+
+/* Error message text */
+.errorlist,
+.invalid-feedback,
+[class*="error-message"],
+[role="alert"] {
+    color: #dc2626 !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .errorlist,
+    .invalid-feedback,
+    [class*="error-message"],
+    [role="alert"] {
+        color: #f87171 !important;
+    }
+}
+
+/* ========================================
+   Specific Employee Admin Form Fields
+   ========================================
+   Target all specific Employee model fields
+   ======================================== */
+
+/* All ID-specific fields for Employee */
+#id_personnel_id,
+#id_national_id,
+#id_birth_date,
+#id_gender,
+#id_phone,
+#id_address,
+#id_profile_picture,
+#id_branch,
+#id_job_title,
+#id_hire_date,
+#id_contract_type,
+#id_employment_status,
+#id_contract_end_date,
+#id_base_salary,
+#id_benefits,
+#id_payment_method,
+#id_bank_account_number,
+#id_insurance_info,
+#id_education,
+#id_internal_notes,
+#id_user,
+#id_password_field {
+    background-color: var(--unfold-input-bg) !important;
+    border: 1.5px solid var(--unfold-input-border) !important;
+    color: var(--unfold-input-text) !important;
+}
+
+#id_personnel_id:focus,
+#id_national_id:focus,
+#id_birth_date:focus,
+#id_gender:focus,
+#id_phone:focus,
+#id_address:focus,
+#id_profile_picture:focus,
+#id_branch:focus,
+#id_job_title:focus,
+#id_hire_date:focus,
+#id_contract_type:focus,
+#id_employment_status:focus,
+#id_contract_end_date:focus,
+#id_base_salary:focus,
+#id_benefits:focus,
+#id_payment_method:focus,
+#id_bank_account_number:focus,
+#id_insurance_info:focus,
+#id_education:focus,
+#id_internal_notes:focus,
+#id_user:focus,
+#id_password_field:focus {
+    border-color: var(--unfold-focus-border) !important;
+    box-shadow: var(--unfold-focus-outline) !important;
+    background-color: var(--unfold-input-bg) !important;
+}
+
+/* ========================================
+   Select/Dropdown Specific
+   ======================================== */
+
+select,
+[role="combobox"],
+[class*="select"] {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231f2937' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem auto;
+    padding-right: 2.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    select,
+    [role="combobox"],
+    [class*="select"] {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f3f4f6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    }
+}
+
+/* ========================================
+   Readonly Fields
+   ======================================== */
+
+[readonly],
+input[readonly],
+textarea[readonly],
+select[disabled],
+[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.65 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [readonly],
+    input[readonly],
+    textarea[readonly],
+    select[disabled],
+    [disabled] {
+        background-color: #111827 !important;
+        color: #9ca3af !important;
+    }
+}
+
+/* ========================================
+   Checkboxes and Radio Buttons
+   ======================================== */
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #3b82f6 !important;
+    cursor: pointer !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    input[type="checkbox"],
+    input[type="radio"] {
+        accent-color: #60a5fa !important;
+    }
+}
+
+/* ========================================
+   Button Styling
+   ======================================== */
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[type="submit"],
+[role="button"] {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border: 1px solid #3b82f6 !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover,
+[type="submit"]:hover,
+[role="button"]:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    button,
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    [type="submit"],
+    [role="button"] {
+        background-color: #1e40af !important;
+        border-color: #1e40af !important;
+    }
+
+    button:hover,
+    input[type="button"]:hover,
+    input[type="submit"]:hover,
+    input[type="reset"]:hover,
+    [type="submit"]:hover,
+    [role="button"]:hover {
+        background-color: #1e3a8a !important;
+        border-color: #1e3a8a !important;
+    }
+}
+
+/* Delete button */
+.deletelink,
+[class*="delete"],
+input[class*="delete"] {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: white !important;
+}
+
+.deletelink:hover,
+[class*="delete"]:hover,
+input[class*="delete"]:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* ========================================
+   Form Row/Container
+   ======================================== */
+
+.form-row,
+.form-group,
+[class*="form-row"],
+[class*="form-group"] {
+    margin-bottom: 1.5rem;
+}
+
+.form-row > * + *,
+.form-group > * + * {
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   Inline Related/Tabular
+   ======================================== */
+
+.inline-related,
+.tabular.inline-related,
+[class*="inline-related"] {
+    margin: 1rem 0;
+}
+
+.inline-related input,
+.inline-related select,
+.inline-related textarea,
+.tabular.inline-related input,
+.tabular.inline-related select,
+.tabular.inline-related textarea,
+[class*="inline-related"] input,
+[class*="inline-related"] select,
+[class*="inline-related"] textarea {
+    background-color: var(--unfold-input-bg) !important;
+    border-color: var(--unfold-input-border) !important;
+    color: var(--unfold-input-text) !important;
+}
