@@ -7,38 +7,109 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.http import HttpResponse
-import os
-from django.conf import settings
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
+import os
 
-def find_template_file(template_name):
-    """
-    Find template file in various possible locations
-    This is a workaround for deployment issues where directory structure may vary
-    """
-    # Get the configured template directories
-    template_dirs = settings.TEMPLATES[0]['DIRS']
-    
-    # Also check some common alternative locations
-    base_dir = settings.BASE_DIR
-    alternative_dirs = [
-        base_dir / "templates",
-        base_dir.parent / "templates",
-        os.path.join(os.getcwd(), "templates"),
-        os.path.join(os.path.dirname(os.getcwd()), "templates"),
-    ]
-    
-    # Combine all directories to check
-    all_dirs = list(template_dirs) + alternative_dirs
-    
-    # Look for the template in each directory
-    for directory in all_dirs:
-        template_path = os.path.join(directory, template_name)
-        if os.path.exists(template_path):
-            return template_path
-    
-    return None
+# Fallback login template as string for production environments
+LOGIN_TEMPLATE_FALLBACK = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سیستم - شهر راز</title>
+    <style>
+        body {
+            font-family: Vazirmatn, Tahoma, sans-serif;
+            direction: rtl;
+            text-align: center;
+            padding: 50px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: white;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .logo {
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>شهر راز</h1>
+            <p>ورود به سیستم کارکنان</p>
+        </div>
+        
+        {% if error_message %}
+        <div class="error">
+            {{ error_message }}
+        </div>
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="national_id">کد ملی:</label>
+                <input type="text" id="national_id" name="national_id" value="{{ national_id|default:'' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">رمز عبور:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit">ورود</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
 
 @require_http_methods(["GET", "POST"])
 def employee_login(request):
@@ -46,7 +117,6 @@ def employee_login(request):
     صفحه ورود کارمندان با کد ملی
     ریدایرکت به داشبورد مناسب بر اساس نقش کاربر
     """
-    # Try to render with standard Django template loading first
     try:
         if request.method == 'POST':
             national_id = request.POST.get('national_id', '')
@@ -94,46 +164,18 @@ def employee_login(request):
             'title': 'ورود به سیستم'
         })
     except TemplateDoesNotExist:
-        # If template doesn't exist in standard location, provide a fallback
-        html_content = """
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>ورود به سیستم</title>
-            <style>
-                body {{ font-family: Vazirmatn, sans-serif; direction: rtl; text-align: center; padding: 50px; }}
-                .container {{ max-width: 400px; margin: 0 auto; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: white; }}
-                .form-group {{ margin-bottom: 1rem; text-align: right; }}
-                label {{ display: block; margin-bottom: 0.5rem; font-weight: bold; }}
-                input {{ width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }}
-                button {{ width: 100%; padding: 0.75rem; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }}
-                .error {{ color: #dc3545; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>شهر راز</h1>
-                <p>ورود به سیستم کارکنان</p>
-                
-                <form method="post">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{0}">
-                    <div class="form-group">
-                        <label for="national_id">کد ملی:</label>
-                        <input type="text" id="national_id" name="national_id" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">رمز عبور:</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    
-                    <button type="submit">ورود</button>
-                </form>
-            </div>
-        </body>
-        </html>
-        """.format(request.META.get('CSRF_COOKIE', ''))
+        # If template doesn't exist, render the fallback template directly
+        from django.template import Context, Template
         
+        # Process template with Django template engine
+        template = Template(LOGIN_TEMPLATE_FALLBACK)
+        context = Context({
+            'national_id': getattr(request, 'national_id', ''),
+            'error_message': getattr(request, 'error_message', ''),
+            'title': 'ورود به سیستم'
+        })
+        
+        html_content = template.render(context)
         return HttpResponse(html_content.encode('utf-8'), content_type="text/html; charset=utf-8")
 
 

@@ -17,30 +17,37 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Ensure templates directory exists and is correctly configured
-# This is a fix for production deployment issues where the directory structure might be different
+# Handle production environment template directory issue
+# In production, the project might be in a different structure
 import os
-import sys
 
-# Debug information for deployment issues
-# print("BASE_DIR:", BASE_DIR)
-# print("Current working directory:", os.getcwd())
-# print("Python path:", sys.path)
+# Define template directory with fallbacks for different environments
+TEMPLATE_DIRS = []
 
-# Try to find the templates directory in various locations
-TEMPLATES_DIR = BASE_DIR / "templates"
-if not TEMPLATES_DIR.exists():
-    # Try alternative locations
-    alternative_locations = [
-        BASE_DIR.parent / "templates",  # templates in parent directory
-        Path(os.getcwd()) / "templates",  # templates in current working directory
-        Path(os.getcwd()).parent / "templates",  # templates in current working directory's parent
-    ]
-    
-    for location in alternative_locations:
-        if location.exists():
-            TEMPLATES_DIR = location
-            break
+# Primary template directory (standard development setup)
+primary_template_dir = BASE_DIR / "templates"
+TEMPLATE_DIRS.append(primary_template_dir)
+
+# Add production-specific paths that might be needed
+production_template_dirs = [
+    Path("/home/shaherer/phonix/phonix-web/templates"),  # Production path from error
+    BASE_DIR.parent / "templates",  # Templates in parent directory
+    Path(os.getcwd()) / "templates",  # Templates in current working directory
+]
+
+# Add existing directories to template dirs
+for template_dir in production_template_dirs:
+    if template_dir.exists():
+        TEMPLATE_DIRS.append(template_dir)
+
+# Ensure the templates directory exists, if not, create it
+templates_dir = BASE_DIR / "templates"
+if not templates_dir.exists():
+    try:
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Created templates directory: {templates_dir}")
+    except Exception as e:
+        print(f"Failed to create templates directory: {e}")
 
 # بارگذاری متغیرهای محیطی از .env فایل
 load_dotenv(BASE_DIR / '.env')
@@ -99,7 +106,7 @@ ROOT_URLCONF = "phonix.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [TEMPLATES_DIR],  # Use the verified templates directory
+        "DIRS": TEMPLATE_DIRS,  # Use multiple possible template directories
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
