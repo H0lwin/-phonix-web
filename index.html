@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -7,6 +8,9 @@
     <meta name="keywords" content="خرید وام, فروش وام, لیزینگ خودرو, ثبت شرکت, خدمات حقوقی, وکالت, ثبت مجوز">
     <meta name="author" content="Shahrar Financial & Legal Services">
     <title>شهر راز - مرکز تخصصی خدمات مالی و حقوقی</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
     
     <style>
         /* ================================================================
@@ -22,30 +26,35 @@
             /* Color System - Professional Legal Theme */
             --color-primary: #1a365d;
             --color-primary-light: #2d4a7c;
-            --color-primary-dark: #0f2744;
+            --color-primary-dark: #0f1c2e;
             --color-accent: #d4af37;
-            --color-accent-light: #e8c968;
-            --color-background: #ffffff;
-            --color-surface: #f8f9fa;
-            --color-text: #1a202c;
+            --color-accent-light: #e6c052;
+            --color-accent-dark: #b8972d;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ffc107;
+            --color-info: #17a2b8;
+            --color-text: #2d3748;
             --color-text-light: #4a5568;
             --color-text-muted: #718096;
+            --color-background: #f8f9fa;
+            --color-surface: #ffffff;
             --color-border: #e2e8f0;
-            --color-success: #38a169;
-            --color-warning: #d69e2e;
-            --color-error: #e53e3e;
             
-            /* Spacing */
+            /* Spacing System */
             --spacing-xs: 0.5rem;
-            --spacing-sm: 1rem;
-            --spacing-md: 1.5rem;
-            --spacing-lg: 2rem;
-            --spacing-xl: 3rem;
-            --spacing-2xl: 4rem;
-            --spacing-3xl: 6rem;
+            --spacing-sm: 0.75rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
             
             /* Typography */
-            --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-primary: "Vazirmatn", sans-serif;
+            --font-optical-sizing: auto;
+            --font-weight-normal: 400;
+            --font-weight-bold: 700;
             --font-size-xs: 0.75rem;
             --font-size-sm: 0.875rem;
             --font-size-base: 1rem;
@@ -81,6 +90,9 @@
 
         body {
             font-family: var(--font-primary);
+            font-optical-sizing: var(--font-optical-sizing);
+            font-weight: var(--font-weight-normal);
+            font-style: normal;
             font-size: var(--font-size-base);
             line-height: 1.6;
             color: var(--color-text);

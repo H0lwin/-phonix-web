@@ -69,4 +69,4 @@ def employee_logout(request):
     """
     logout(request)
     messages.success(request, 'با موفقیت از سیستم خارج شدید')
-    return redirect('employee_login')
+    return redirect('core:login')
