@@ -17,6 +17,31 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Ensure templates directory exists and is correctly configured
+# This is a fix for production deployment issues where the directory structure might be different
+import os
+import sys
+
+# Debug information for deployment issues
+# print("BASE_DIR:", BASE_DIR)
+# print("Current working directory:", os.getcwd())
+# print("Python path:", sys.path)
+
+# Try to find the templates directory in various locations
+TEMPLATES_DIR = BASE_DIR / "templates"
+if not TEMPLATES_DIR.exists():
+    # Try alternative locations
+    alternative_locations = [
+        BASE_DIR.parent / "templates",  # templates in parent directory
+        Path(os.getcwd()) / "templates",  # templates in current working directory
+        Path(os.getcwd()).parent / "templates",  # templates in current working directory's parent
+    ]
+    
+    for location in alternative_locations:
+        if location.exists():
+            TEMPLATES_DIR = location
+            break
+
 # بارگذاری متغیرهای محیطی از .env فایل
 load_dotenv(BASE_DIR / '.env')
 
@@ -74,7 +99,7 @@ ROOT_URLCONF = "phonix.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [TEMPLATES_DIR],  # Use the verified templates directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
