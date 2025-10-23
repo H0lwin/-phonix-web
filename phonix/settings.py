@@ -143,6 +143,9 @@ USE_TZ = False  # Disable timezone support to avoid MySQL timezone issues
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_IGNORE_PATTERNS = [
+    "admin/jquery.ui.datepicker.jalali/**",
+]
 
 # Media Files
 MEDIA_URL = "/media/"
