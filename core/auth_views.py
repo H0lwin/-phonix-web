@@ -7,7 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.http import HttpResponse
-
+import os
+from django.conf import settings
 
 @require_http_methods(["GET", "POST"])
 def employee_login(request):
@@ -62,7 +63,7 @@ def employee_login(request):
     })
 
 
-@login_required(login_url='employee_login')
+@login_required(login_url='core:login')
 def employee_logout(request):
     """
     خروج از سیستم

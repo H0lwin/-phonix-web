@@ -90,7 +90,7 @@
         <form method="post" class="login-form">
             {% csrf_token %}
             <div class="form-group">
-                <label for="national_id">کد ملی:</label>
+                <label for="national_id">نام کاربری:</label>
                 <input type="text" id="national_id" name="national_id" value="{{ national_id|default:'' }}" required>
             </div>
             
