@@ -65,7 +65,7 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 # فقط میزبان‌های مجاز
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,shahereraz.ir,www.shahereraz.ir').split(',')
 
 
 # Application definition
@@ -210,7 +210,7 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Strict'
 
 # CSRF Trusted Origins - باید شامل scheme باشد
-_allowed_hosts = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+_allowed_hosts = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,shahereraz.ir,www.shahereraz.ir').split(',')
 CSRF_TRUSTED_ORIGINS = [f"http://{host}" if not host.startswith(('http://', 'https://')) else host for host in _allowed_hosts]
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = [origin.replace('http://', 'https://') for origin in CSRF_TRUSTED_ORIGINS]
@@ -263,7 +263,9 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS = 'DENY'
 
 # ===== STATIC FILES OPTIMIZATION =====
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Temporarily use standard static files storage to avoid manifest issues
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ===== LOGGING CONFIGURATION =====
 LOGGING = {

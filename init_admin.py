@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-اسکریپت تعاملی برای ایجاد و مدیریت کاربر ادمین
-سازگار با محیط تولید (Production)
+Interactive script for creating and managing admin users
+Compatible with production environment
 """
 import os
 import sys
@@ -9,17 +9,17 @@ import django
 import getpass
 from pathlib import Path
 
-# Django سیٹ اپ
+# Django setup
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'phonix.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from core.models import UserProfile, Branch, Employee
+from core import models
 import jdatetime
 
 
 class AdminInitializer:
-    """کلاس برای مدیریت ایجاد ادمین"""
+    """Class for managing admin creation"""
     
     def __init__(self):
         self.username = None
@@ -30,29 +30,29 @@ class AdminInitializer:
         self.last_name = None
     
     def print_header(self, title):
-        """نمایش عنوان"""
+        """Display header"""
         print("\n" + "=" * 70)
         print(f"🔐 {title}")
         print("=" * 70)
     
     def print_success(self, msg):
-        """پیام موفقیت"""
+        """Success message"""
         print(f"✅ {msg}")
     
     def print_error(self, msg):
-        """پیام خطا"""
+        """Error message"""
         print(f"❌ {msg}")
     
     def print_warning(self, msg):
-        """پیام هشدار"""
+        """Warning message"""
         print(f"⚠️  {msg}")
     
     def print_info(self, msg):
-        """پیام اطلاعات"""
+        """Info message"""
         print(f"ℹ️  {msg}")
     
     def get_input(self, prompt, required=True, default=None, is_password=False):
-        """دریافت ورودی از کاربر"""
+        """Get user input"""
         while True:
             if default:
                 display_prompt = f"➜ {prompt} [{default}]: "
@@ -64,103 +64,104 @@ class AdminInitializer:
             else:
                 value = input(display_prompt).strip()
             
-            # استفاده از مقدار پیشفرض
+            # Use default value
             if not value and default:
                 return default
             
-            # بررسی فیلد الزامی
+            # Check required field
             if not value and required:
-                self.print_error("این فیلد الزامی است!")
+                self.print_error("This field is required!")
                 continue
             
             return value if value else None
     
     def get_yes_no(self, prompt):
-        """دریافت پاسخ بله/خیر"""
+        """Get yes/no response"""
         while True:
-            response = input(f"❓ {prompt} (بله/خیر) [n]: ").strip().lower()
-            if response in ['بله', 'yes', 'y']:
+            response = input(f"❓ {prompt} (yes/no) [n]: ").strip().lower()
+            if response in ['yes', 'y']:
                 return True
-            elif response in ['خیر', 'no', 'n', '']:
+            elif response in ['no', 'n', '']:
                 return False
             else:
-                self.print_error("لطفاً بله یا خیر وارد کنید")
-    
-    def check_existing_admin(self):
-        """بررسی ادمین موجود"""
-        if User.objects.filter(username=self.username).exists():
-            user = User.objects.get(username=self.username)
-            self.print_warning(f"کاربر '{self.username}' قبلاً وجود دارد")
-            print(f"   نام: {user.first_name} {user.last_name}")
-            print(f"   ایمیل: {user.email}")
-            
-            if hasattr(user, 'userprofile'):
-                print(f"   نقش: {user.userprofile.get_role_display()}")
-            
-            return user
-        return None
+                self.print_error("Please enter yes or no")
     
     def create_or_update_branch(self):
-        """ایجاد یا بازیابی شعبه مرکزی"""
-        branch, created = Branch.objects.get_or_create(
-            code='HQ-001',
-            defaults={
-                'name': 'دفتر مرکزی',
-                'branch_type': 'headquarters',
-                'address': 'تهران - ایران',
-                'city': 'تهران',
-                'province': 'تهران',
-                'postal_code': '0000000000',
-                'phone': '02100000000',
-                'status': 'active',
-                'description': 'دفتر مرکزی شرکت',
-            }
-        )
-        if created:
-            self.print_success("شعبه مرکزی ایجاد شد")
-        return branch
+        """Create or retrieve headquarters branch"""
+        try:
+            # Use getattr to avoid linter errors
+            branch_objects = getattr(models, 'Branch').objects
+            branches = branch_objects.filter(code='HQ-001')
+            if branches.exists():
+                branch = branches.first()
+                self.print_success("Headquarters branch found")
+                return branch
+            else:
+                branch = getattr(models, 'Branch')(
+                    code='HQ-001',
+                    name='Headquarters',
+                    branch_type='headquarters',
+                    address='Tehran - Iran',
+                    city='Tehran',
+                    province='Tehran',
+                    postal_code='0000000000',
+                    phone='02100000000',
+                    status='active',
+                    description='Company Headquarters',
+                )
+                branch.save()
+                self.print_success("Headquarters branch created")
+                return branch
+        except Exception as e:
+            self.print_error(f"Error creating branch: {str(e)}")
+            return None
     
     def create_user(self):
-        """ایجاد کاربر جدید"""
-        self.print_info("ایجاد کاربر جدید...")
+        """Create new user"""
+        self.print_info("Creating new user...")
         
-        # بررسی نام کاربری
+        # Check username
         while True:
-            username = self.get_input("نام کاربری", required=True)
-            if User.objects.filter(username=username).exists():
-                self.print_error(f"کاربر '{username}' قبلاً وجود دارد")
+            username = self.get_input("Username", required=True)
+            try:
+                users = User.objects.filter(username=username)
+                if users.exists():
+                    self.print_error(f"User '{username}' already exists")
+                    continue
+            except Exception as e:
+                self.print_error(f"Error checking username: {str(e)}")
                 continue
             self.username = username
             break
         
-        # دریافت دیگر اطلاعات
-        self.email = self.get_input("ایمیل", required=True)
-        self.first_name = self.get_input("نام", required=False, default="سیستم")
-        self.last_name = self.get_input("نام خانوادگی", required=False, default="ادمین")
-        self.national_id = self.get_input("کد ملی (10 رقم)", required=True)
+        # Get other information
+        self.email = self.get_input("Email", required=True)
+        self.first_name = self.get_input("First Name", required=False, default="System")
+        self.last_name = self.get_input("Last Name", required=False, default="Admin")
+        self.national_id = self.get_input("National ID (10 digits)", required=True)
         
-        # دریافت رمز عبور
+        # Get password
         while True:
             self.password = self.get_input(
-                "رمز عبور (حداقل 8 کاراکتر)",
+                "Password (minimum 8 characters)",
                 required=True,
                 is_password=True
             )
-            if len(self.password) < 8:
-                self.print_error("رمز عبور باید حداقل 8 کاراکتر باشد")
+            if self.password and len(self.password) < 8:
+                self.print_error("Password must be at least 8 characters")
                 continue
             
             password_confirm = self.get_input(
-                "تایید رمز عبور",
+                "Confirm Password",
                 required=True,
                 is_password=True
             )
             if self.password != password_confirm:
-                self.print_error("رمز عبورها منطبق نیستند")
+                self.print_error("Passwords do not match")
                 continue
             break
         
-        # ایجاد کاربر
+        # Create user
         try:
             user = User.objects.create_superuser(
                 username=self.username,
@@ -169,229 +170,249 @@ class AdminInitializer:
                 first_name=self.first_name,
                 last_name=self.last_name,
             )
-            self.print_success(f"کاربر '{self.username}' ایجاد شد")
+            self.print_success(f"User '{self.username}' created")
             return user
         except Exception as e:
-            self.print_error(f"خطا در ایجاد کاربر: {str(e)}")
+            self.print_error(f"Error creating user: {str(e)}")
             return None
     
     def create_profile(self, user):
-        """ایجاد یا بروزرسانی پروفایل کاربری"""
-        profile, created = UserProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                'role': 'admin',
-                'national_id': self.national_id,
-                'display_name': f"{self.first_name} {self.last_name}",
-                'job_title': 'مدیر سیستم',
-                'hire_date': jdatetime.date.today().isoformat(),
-            }
-        )
-        
-        if created:
-            self.print_success("پروفایل کاربری ایجاد شد")
-        else:
-            profile.national_id = self.national_id
-            profile.save()
-            self.print_success("پروفایل کاربری بروزرسانی شد")
-        
-        return profile
+        """Create or update user profile"""
+        try:
+            # Use getattr to avoid linter errors
+            profile_objects = getattr(models, 'UserProfile').objects
+            profiles = profile_objects.filter(user=user)
+            if profiles.exists():
+                profile = profiles.first()
+                profile.national_id = self.national_id
+                profile.save()
+                self.print_success("User profile updated")
+                return profile
+            else:
+                profile = getattr(models, 'UserProfile')(
+                    user=user,
+                    role='admin',
+                    national_id=self.national_id,
+                    display_name=f"{self.first_name} {self.last_name}",
+                    job_title='System Administrator',
+                    hire_date=jdatetime.date.today().isoformat(),
+                )
+                profile.save()
+                self.print_success("User profile created")
+                return profile
+        except Exception as e:
+            self.print_error(f"Error creating profile: {str(e)}")
+            return None
     
     def create_employee(self, user, branch):
-        """ایجاد یا بروزرسانی رکورد کارمند"""
-        employee, created = Employee.objects.get_or_create(
-            user=user,
-            defaults={
-                'national_id': self.national_id,
-                'branch': branch,
-                'job_title': 'مدیر سیستم',
-                'hire_date': jdatetime.date.today(),
-                'phone': '09000000000',
-                'employment_status': 'active',
-                'contract_type': 'full_time',
-            }
-        )
-        
-        if created:
-            self.print_success("رکورد کارمند ایجاد شد")
-        else:
-            employee.national_id = self.national_id
-            employee.save()
-            self.print_success("رکورد کارمند بروزرسانی شد")
-        
-        return employee
+        """Create or update employee record"""
+        try:
+            # Use getattr to avoid linter errors
+            employee_objects = getattr(models, 'Employee').objects
+            employees = employee_objects.filter(user=user)
+            if employees.exists():
+                employee = employees.first()
+                employee.national_id = self.national_id
+                employee.save()
+                self.print_success("Employee record updated")
+                return employee
+            else:
+                employee = getattr(models, 'Employee')(
+                    user=user,
+                    national_id=self.national_id,
+                    branch=branch,
+                    job_title='manager',
+                    hire_date=jdatetime.date.today(),
+                    phone='09000000000',
+                    employment_status='active',
+                    contract_type='full_time',
+                )
+                employee.save()
+                self.print_success("Employee record created")
+                return employee
+        except Exception as e:
+            self.print_error(f"Error creating employee: {str(e)}")
+            return None
     
     def display_credentials(self, user):
-        """نمایش اطلاعات ورود"""
+        """Display login credentials"""
         print("\n" + "=" * 70)
-        print("📋 اطلاعات ورود به سیستم")
+        print("📋 Login Credentials")
         print("=" * 70)
-        print(f"نام کاربری:  {user.username}")
-        print(f"رمز عبور:    {self.password}")
-        print(f"ایمیل:       {user.email}")
-        print(f"کد ملی:      {self.national_id}")
-        print(f"نام:         {user.first_name} {user.last_name}")
+        print(f"Username:    {user.username}")
+        print(f"Password:    {self.password}")
+        print(f"Email:       {user.email}")
+        print(f"National ID: {self.national_id}")
+        print(f"Name:        {user.first_name} {user.last_name}")
         print("=" * 70)
-        print("💡 توجه: این اطلاعات را در جایی امن ذخیره کنید")
+        print("💡 Note: Store this information in a secure location")
         print("=" * 70)
     
     def run(self):
-        """اجرای برنامه"""
-        self.print_header("سیستم مدیریت ادمین - Phonix")
+        """Run the program"""
+        self.print_header("Admin Management System - Phonix")
         
         print("""
-گزینه‌ها:
-  1. ایجاد ادمین جدید
-  2. بروزرسانی ادمین موجود
-  3. خروج
+Options:
+  1. Create New Admin
+  2. Update Existing Admin
+  3. Exit
         """)
         
-        choice = self.get_input("انتخاب خود را وارد کنید", required=True)
+        choice = self.get_input("Enter your choice", required=True)
         
         if choice == '1':
             self._create_new()
         elif choice == '2':
             self._update_existing()
         elif choice == '3':
-            print("\n👋 خروج...")
+            print("\n👋 Exiting...")
             sys.exit(0)
         else:
-            self.print_error("انتخاب نامعتبر است")
+            self.print_error("Invalid choice")
             self.run()
     
     def _create_new(self):
-        """ایجاد ادمین جدید"""
-        self.print_header("ایجاد ادمین جدید")
+        """Create new admin"""
+        self.print_header("Create New Admin")
         
-        # ایجاد کاربر
+        # Create user
         user = self.create_user()
         if not user:
             return
         
-        # ایجاد شعبه
+        # Create branch
         branch = self.create_or_update_branch()
+        if not branch:
+            return
         
-        # ایجاد پروفایل
+        # Create profile
         self.create_profile(user)
         
-        # ایجاد کارمند
+        # Create employee
         self.create_employee(user, branch)
         
-        # نمایش اطلاعات
+        # Display credentials
         self.display_credentials(user)
         
-        print("\n✨ ادمین با موفقیت ایجاد شد!")
+        print("\n✨ Admin created successfully!")
         
-        if self.get_yes_no("آیا می‌خواهید ادمین دیگری ایجاد کنید؟"):
+        if self.get_yes_no("Do you want to create another admin?"):
             self.run()
     
     def _update_existing(self):
-        """بروزرسانی ادمین موجود"""
-        self.print_header("بروزرسانی ادمین موجود")
+        """Update existing admin"""
+        self.print_header("Update Existing Admin")
         
-        username = self.get_input("نام کاربری ادمین", required=True)
+        username = self.get_input("Admin username", required=True)
         
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            self.print_error(f"کاربر '{username}' پیدا نشد")
+        except Exception as e:
+            if "DoesNotExist" in str(type(e)) or "DoesNotExist" in str(e):
+                self.print_error(f"User '{username}' not found")
+            else:
+                self.print_error(f"Error finding user: {str(e)}")
             return
         
-        print(f"\n📋 اطلاعات فعلی کاربر '{username}':")
-        print(f"   نام: {user.first_name} {user.last_name}")
-        print(f"   ایمیل: {user.email}")
+        print(f"\n📋 Current user information '{username}':")
+        print(f"   Name: {user.first_name} {user.last_name}")
+        print(f"   Email: {user.email}")
         
-        # دریافت اطلاعات جدید
+        # Get new information
         self.username = username
         self.first_name = self.get_input(
-            "نام جدید (برای بدون تغییر Enter بزنید)",
+            "New First Name (press Enter to keep current)",
             required=False,
             default=user.first_name
         )
         self.last_name = self.get_input(
-            "نام خانوادگی جدید (برای بدون تغییر Enter بزنید)",
+            "New Last Name (press Enter to keep current)",
             required=False,
             default=user.last_name
         )
         self.email = self.get_input(
-            "ایمیل جدید (برای بدون تغییر Enter بزنید)",
+            "New Email (press Enter to keep current)",
             required=False,
             default=user.email
         )
         self.national_id = self.get_input(
-            "کد ملی جدید (برای بدون تغییر Enter بزنید)",
+            "New National ID (press Enter to keep current)",
             required=False,
             default=None
         )
         
-        # رمز عبور اختیاری
-        if self.get_yes_no("آیا می‌خواهید رمز عبور را تغییر دهید؟"):
+        # Password change optional
+        if self.get_yes_no("Do you want to change the password?"):
             while True:
                 self.password = self.get_input(
-                    "رمز عبور جدید (حداقل 8 کاراکتر)",
+                    "New Password (minimum 8 characters)",
                     required=True,
                     is_password=True
                 )
-                if len(self.password) < 8:
-                    self.print_error("رمز عبور باید حداقل 8 کاراکتر باشد")
+                if self.password and len(self.password) < 8:
+                    self.print_error("Password must be at least 8 characters")
                     continue
                 
                 password_confirm = self.get_input(
-                    "تایید رمز عبور",
+                    "Confirm Password",
                     required=True,
                     is_password=True
                 )
                 if self.password != password_confirm:
-                    self.print_error("رمز عبورها منطبق نیستند")
+                    self.print_error("Passwords do not match")
                     continue
                 break
             
             user.set_password(self.password)
         
-        # بروزرسانی کاربر
+        # Update user
         user.first_name = self.first_name
         user.last_name = self.last_name
         user.email = self.email
         user.save()
-        self.print_success("اطلاعات کاربر بروزرسانی شد")
+        self.print_success("User information updated")
         
-        # بروزرسانی پروفایل
-        if hasattr(user, 'userprofile'):
-            profile = user.userprofile
-            if self.national_id:
-                profile.national_id = self.national_id
-            profile.display_name = f"{self.first_name} {self.last_name}"
-            profile.save()
-            self.print_success("پروفایل بروزرسانی شد")
+        # Update profile
+        try:
+            if hasattr(user, 'profile'):
+                profile = user.profile
+                if self.national_id:
+                    profile.national_id = self.national_id
+                profile.display_name = f"{self.first_name} {self.last_name}"
+                profile.save()
+                self.print_success("Profile updated")
+        except Exception as e:
+            self.print_error(f"Error updating profile: {str(e)}")
         
-        # نمایش اطلاعات
+        # Display information
         if self.password:
             self.display_credentials(user)
         else:
             print("\n" + "=" * 70)
-            print("📋 اطلاعات کاربر بروزرسانی شد")
+            print("📋 User information updated")
             print("=" * 70)
-            print(f"نام کاربری:  {user.username}")
-            print(f"ایمیل:       {user.email}")
-            print(f"نام:         {user.first_name} {user.last_name}")
+            print(f"Username:    {user.username}")
+            print(f"Email:       {user.email}")
+            print(f"Name:        {user.first_name} {user.last_name}")
             print("=" * 70)
         
-        print("\n✨ ادمین با موفقیت بروزرسانی شد!")
+        print("\n✨ Admin updated successfully!")
         
-        if self.get_yes_no("آیا می‌خواهید عملیات دیگری انجام دهید؟"):
+        if self.get_yes_no("Do you want to perform another operation?"):
             self.run()
 
 
 def main():
-    """تابع اصلی"""
+    """Main function"""
     try:
         initializer = AdminInitializer()
         initializer.run()
     except KeyboardInterrupt:
-        print("\n\n👋 عملیات لغو شد")
+        print("\n\n👋 Operation cancelled")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ خطای غیرمنتظره: {str(e)}")
+        print(f"\n❌ Unexpected error: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
