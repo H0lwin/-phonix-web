@@ -103,7 +103,7 @@ class UserProfile(models.Model):
                                     default='full_time', verbose_name="نوع قرارداد")
     employment_status = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS_CHOICES,
                                         default='active', verbose_name="وضعیت فعلی")
-    hire_date = jmodels.jDateField(verbose_name="تاریخ استخدام")
+    hire_date = jmodels.jDateField(verbose_name="تاریخ استخدام", blank=True, null=True)
     contract_end_date = jmodels.jDateField(blank=True, null=True,
                                           verbose_name="تاریخ پایان قرارداد")
     
@@ -267,7 +267,7 @@ class Employee(models.Model):
                                     default='full_time', verbose_name="نوع قرارداد")
     employment_status = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS_CHOICES,
                                         default='active', verbose_name="وضعیت فعلی")
-    hire_date = jmodels.jDateField(verbose_name="تاریخ استخدام")
+    hire_date = jmodels.jDateField(verbose_name="تاریخ استخدام", blank=True, null=True)
     
     # اطلاعات مالی و حقوق
     base_salary = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True,

@@ -95,8 +95,8 @@ LOGIN_TEMPLATE_FALLBACK = """
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="national_id">کد ملی:</label>
-                <input type="text" id="national_id" name="national_id" value="{{ national_id|default:'' }}" required>
+                <label for="username">نام کاربری:</label>
+                <input type="text" id="username" name="username" value="{{ username|default:'' }}" required>
             </div>
             
             <div class="form-group">
@@ -119,29 +119,25 @@ def employee_login(request):
     """
     try:
         if request.method == 'POST':
-            national_id = request.POST.get('national_id', '')
+            username_input = request.POST.get('username', '').strip()
             password = request.POST.get('password', '')
             
-            if not national_id or not password:
-                messages.error(request, 'لطفاً کد ملی و پسورد را وارد کنید')
+            if not username_input or not password:
+                messages.error(request, 'لطفاً نام کاربری و رمز عبور را وارد کنید')
                 return render(request, 'login.html', {
-                    'national_id': national_id,
-                    'error_message': 'لطفاً کد ملی و پسورد را وارد کنید'
+                    'username': username_input,
+                    'error_message': 'لطفاً نام کاربری و رمز عبور را وارد کنید'
                 })
             
-            # احراز هویت با کد ملی و پسورد
-            user = authenticate(request, username=national_id, password=password)
+            user = authenticate(request, username=username_input, password=password)
             
             if user is not None:
-                # ورود کاربر
                 login(request, user)
                 
-                # تعیین مقصد بر اساس نقش کاربر
                 if hasattr(user, 'profile'):
                     role = user.profile.role
                     messages.success(request, f'خوش آمدید {user.profile.display_name or user.first_name}')
                     
-                    # ریدایرکت بر اساس نقش (دسترسی‌ها در signals مدیریت می‌شوند)
                     if role == 'admin':
                         return redirect('admin:index')
                     elif role == 'lawyer':
@@ -149,17 +145,15 @@ def employee_login(request):
                     elif role == 'employee':
                         return redirect('employee_admin:index')
                 
-                # مقصد پیش‌فرض - اگر نقش پیدا نشود
                 messages.warning(request, 'نقش کاربر تعریف نشده است')
                 return redirect('core:index')
             else:
-                messages.error(request, 'کد ملی یا پسورد اشتباه است')
+                messages.error(request, 'نام کاربری یا رمز عبور اشتباه است')
                 return render(request, 'login.html', {
-                    'national_id': national_id,
-                    'error_message': 'کد ملی یا پسورد اشتباه است'
+                    'username': username_input,
+                    'error_message': 'نام کاربری یا رمز عبور اشتباه است'
                 })
         
-        # صفحه ورود (GET)
         return render(request, 'login.html', {
             'title': 'ورود به سیستم'
         })
@@ -170,7 +164,7 @@ def employee_login(request):
         # Process template with Django template engine
         template = Template(LOGIN_TEMPLATE_FALLBACK)
         context = Context({
-            'national_id': getattr(request, 'national_id', ''),
+            'username': getattr(request, 'username', ''),
             'error_message': getattr(request, 'error_message', ''),
             'title': 'ورود به سیستم'
         })

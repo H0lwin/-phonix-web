@@ -193,9 +193,9 @@ class AdminInitializer:
                     user=user,
                     role='admin',
                     national_id=self.national_id,
-                    display_name=f"{self.first_name} {self.last_name}",
-                    job_title='System Administrator',
-                    hire_date=jdatetime.date.today().isoformat(),
+                    display_name=f"{self.first_name} {self.last_name}".strip() or user.username,
+                    job_title='مدیر سیستم',
+                    hire_date=jdatetime.date.today(),
                 )
                 profile.save()
                 self.print_success("User profile created")

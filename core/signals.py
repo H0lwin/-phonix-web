@@ -9,11 +9,9 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_login_failed, user_logged_in, user_logged_out
 from django.utils.text import slugify
-from .models import (
-    ActivityLog, UserProfile, Branch, Employee, 
-    Attendance, ActivityReport, Income, 
-    Expense, Loan, LoanBuyer, LoanCreditor, LoanCreditorInstallment
-)
+
+# Import models directly to avoid linter errors
+from .models import ActivityLog, UserProfile, Employee, Attendance, Income, Expense, Loan, LoanBuyer, LoanCreditorInstallment, Branch
 
 # Get logger for this module
 logger = logging.getLogger('phonix')
@@ -58,43 +56,99 @@ def create_activity_log(user, action, model_name, object_id, description, detail
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """خودکار ایجاد UserProfile هنگام ایجاد User و تعیین دسترسی‌ها بر اساس نقش"""
-    if created:
-        import jdatetime
-        import random
-        
-        # تاریخ امروز (جلالی)
-        today = jdatetime.date.today()
-        hire_date = f"{today.year}-{today.month:02d}-{today.day:02d}"
-        
-        # کد ملی یونیک (اگر هنوز موجود نیست)
-        national_id = None
-        max_attempts = 10
+    import jdatetime
+    import random
+    
+    # تاریخ امروز (جلالی)
+    today = jdatetime.date.today()
+    full_name = f"{instance.first_name} {instance.last_name}".strip()
+    if not full_name:
+        full_name = instance.username
+    
+    # Get or create user profile
+    try:
+        profile = instance.profile
+        profile_created = False
+    except:
+        # Generate a unique national_id for new profiles
+        national_id = ''
+        max_attempts = 100
         for _ in range(max_attempts):
+            # Generate a random 10-digit number
             candidate_id = f"{random.randint(1000000000, 9999999999)}"
             if not UserProfile.objects.filter(national_id=candidate_id).exists():
                 national_id = candidate_id
                 break
         
-        if national_id:
-            profile = UserProfile.objects.get_or_create(
-                user=instance,
-                defaults={
-                    'hire_date': hire_date,
-                    'national_id': national_id,
-                }
-            )[0]
+        # Create new profile with default values
+        profile = UserProfile(
+            user=instance,
+            hire_date=today,
+            national_id=national_id,
+            role='admin' if instance.is_superuser else 'employee',
+            job_title='مدیر سیستم' if instance.is_superuser else 'کارمند',
+            display_name=full_name,
+        )
+        profile.save()
+        profile_created = True
+    
+    # If profile already existed, update role based on user permissions
+    if not profile_created:
+        profile_updates = []
+        if not profile.hire_date:
+            profile.hire_date = today
+            profile_updates.append('hire_date')
+        if instance.is_superuser and profile.job_title != 'مدیر سیستم':
+            profile.job_title = 'مدیر سیستم'
+            profile_updates.append('job_title')
+        if profile.display_name != full_name:
+            profile.display_name = full_name
+            profile_updates.append('display_name')
+        if profile_updates:
+            profile.save(update_fields=profile_updates)
+        # For existing profiles, only update role if it's not already set correctly
+        needs_save = False
+        if instance.is_superuser and profile.role != 'admin':
+            profile.role = 'admin'
+            needs_save = True
+        elif not instance.is_superuser and profile.role == 'admin':
+            # Don't change admin role to employee - admins stay admins
+            pass
+        elif not instance.is_superuser and not instance.is_staff and profile.role != 'employee':
+            profile.role = 'employee'
+            needs_save = True
             
-            # تعیین دسترسی‌ها بر اساس نقش
-            if profile.role == 'admin':
-                instance.is_staff = True
-                instance.is_superuser = True
-            elif profile.role in ['lawyer', 'employee']:
-                instance.is_staff = True
-                instance.is_superuser = False
-            
-            # ذخیره تغییرات
-            if instance.is_staff or instance.is_superuser:
-                instance.save()
+        if needs_save:
+            profile.save()
+    else:
+        # For new profiles, set role based on user permissions
+        if instance.is_superuser and profile.role != 'admin':
+            profile.role = 'admin'
+            profile.save()
+        elif not instance.is_superuser and profile.role != 'employee':
+            profile.role = 'employee'
+            profile.save()
+    
+    # تعیین دسترسی‌ها بر اساس نقش - فقط اگر تغییری لازم است
+    updated_fields = []
+    if profile.role == 'admin':
+        if not instance.is_staff:
+            instance.is_staff = True
+            updated_fields.append('is_staff')
+        if not instance.is_superuser:
+            instance.is_superuser = True
+            updated_fields.append('is_superuser')
+    elif profile.role in ['lawyer', 'employee']:
+        if not instance.is_staff:
+            instance.is_staff = True
+            updated_fields.append('is_staff')
+        if instance.is_superuser:
+            instance.is_superuser = False
+            updated_fields.append('is_superuser')
+    
+    # ذخیره تغییرات فقط اگر لازم است
+    if updated_fields:
+        instance.save(update_fields=updated_fields)
 
 
 # ============================================
