@@ -70,12 +70,15 @@ def create_user_profile(sender, instance, created, **kwargs):
     today = jdatetime.date.today()
     full_name = (f"{instance.first_name} {instance.last_name}".strip()) or instance.username
     
-    # Check if profile already exists (possibly created by admin inline)
+    # Check if profile already exists
+    profile = None
+    profile_created = False
+    
     try:
         profile = instance.profile
-        profile_created = False
     except UserProfile.DoesNotExist:
-        # Create new profile only if it doesn't exist
+        # Only create profile if it doesn't exist and we're not in admin context
+        # In admin context, the inline formset should handle profile creation
         defaults = {
             'hire_date': today,
             'display_name': full_name,
@@ -98,60 +101,61 @@ def create_user_profile(sender, instance, created, **kwargs):
         profile = UserProfile.objects.create(user=instance, **defaults)
         profile_created = True
     
-    # Update profile fields if needed
-    updates = {}
-    
-    # Update national_id if empty
-    if not profile.national_id:
-        for _ in range(100):
-            candidate = f"{random.randint(1000000000, 9999999999)}"
-            if not UserProfile.objects.filter(national_id=candidate).exists():
-                updates['national_id'] = candidate
-                break
-    
-    # Update display_name if different
-    if profile.display_name != full_name:
-        updates['display_name'] = full_name
-    
-    # Update hire_date if empty
-    if not profile.hire_date:
-        updates['hire_date'] = today
-    
-    # Update role based on is_superuser status, but preserve admin role
-    desired_role = 'admin' if instance.is_superuser else profile.role or 'employee'
-    if desired_role == 'admin' or profile.role == 'admin':
-        desired_role = 'admin' if instance.is_superuser else profile.role
-    if profile.role != desired_role:
-        updates['role'] = desired_role
-    
-    # Update job_title if empty
-    if not profile.job_title:
-        updates['job_title'] = 'مدیر سیستم' if instance.is_superuser else 'کارمند'
-    
-    # Save profile updates
-    if updates:
-        for field, value in updates.items():
-            setattr(profile, field, value)
-        profile.save()
-    
-    # Update user permissions based on profile role
-    user_updates = {}
-    if profile.role == 'admin':
-        if not instance.is_staff:
-            user_updates['is_staff'] = True
-        if not instance.is_superuser:
-            user_updates['is_superuser'] = True
-    elif profile.role in ['lawyer', 'employee']:
-        if not instance.is_staff:
-            user_updates['is_staff'] = True
-        if instance.is_superuser and profile.role != 'admin':
-            user_updates['is_superuser'] = False
-    
-    # Save user updates
-    if user_updates:
-        for field, value in user_updates.items():
-            setattr(instance, field, value)
-        instance.save(update_fields=list(user_updates.keys()))
+    # If we have a profile (either existing or newly created), update it as needed
+    if profile:
+        updates = {}
+        
+        # Update national_id if empty
+        if not profile.national_id:
+            for _ in range(100):
+                candidate = f"{random.randint(1000000000, 9999999999)}"
+                if not UserProfile.objects.filter(national_id=candidate).exists():
+                    updates['national_id'] = candidate
+                    break
+        
+        # Update display_name if different
+        if profile.display_name != full_name:
+            updates['display_name'] = full_name
+        
+        # Update hire_date if empty
+        if not profile.hire_date:
+            updates['hire_date'] = today
+        
+        # Update role based on is_superuser status, but preserve admin role
+        desired_role = 'admin' if instance.is_superuser else profile.role or 'employee'
+        if desired_role == 'admin' or profile.role == 'admin':
+            desired_role = 'admin' if instance.is_superuser else profile.role
+        if profile.role != desired_role:
+            updates['role'] = desired_role
+        
+        # Update job_title if empty
+        if not profile.job_title:
+            updates['job_title'] = 'مدیر سیستم' if instance.is_superuser else 'کارمند'
+        
+        # Save profile updates
+        if updates:
+            for field, value in updates.items():
+                setattr(profile, field, value)
+            profile.save()
+        
+        # Update user permissions based on profile role
+        user_updates = {}
+        if profile.role == 'admin':
+            if not instance.is_staff:
+                user_updates['is_staff'] = True
+            if not instance.is_superuser:
+                user_updates['is_superuser'] = True
+        elif profile.role in ['lawyer', 'employee']:
+            if not instance.is_staff:
+                user_updates['is_staff'] = True
+            if instance.is_superuser and profile.role != 'admin':
+                user_updates['is_superuser'] = False
+        
+        # Save user updates
+        if user_updates:
+            for field, value in user_updates.items():
+                setattr(instance, field, value)
+            instance.save(update_fields=list(user_updates.keys()))
 
 
 # ============================================
