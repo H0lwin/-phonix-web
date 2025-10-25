@@ -5,6 +5,8 @@ from django.dispatch import receiver
 from django_jalali.db import models as jmodels
 import random
 import string
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from django.utils import timezone
 
@@ -1207,23 +1209,6 @@ class LoanCreditorInstallment(models.Model):
 # ============================================
 # Signal Handlers
 # ============================================
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """ایجاد خودکار پروفایل به هنگام ایجاد کاربر"""
-    if created:
-        try:
-            UserProfile.objects.get_or_create(user=instance)
-        except:
-            pass
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """ذخیره پروفایل به هنگام ذخیره کاربر"""
-    try:
-        instance.profile.save()
-    except:
-        pass
 
 
 @receiver(pre_save, sender=Attendance)

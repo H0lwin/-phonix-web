@@ -4,6 +4,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.core.exceptions import PermissionDenied
+from django.forms.formsets import DELETION_FIELD_NAME
+from django.forms.models import BaseInlineFormSet
 from django_jalali.admin.filters import JDateFieldListFilter
 from django_jalali.db import models as jmodels
 from admincharts.admin import AdminChartMixin
@@ -93,9 +95,50 @@ class LoanForm(forms.ModelForm):
 # Inline Admin برای UserProfile
 # ============================================
 
+class UserProfileInlineFormSet(BaseInlineFormSet):
+    def save(self, commit=True):
+        if not commit:
+            return super().save(commit)
+        self.new_objects = []
+        self.changed_objects = []
+        self.deleted_objects = []
+        instances = []
+        existing_profile = UserProfile.objects.filter(user=self.instance).first()
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data'):
+                continue
+            if form.cleaned_data.get(DELETION_FIELD_NAME):
+                continue
+            if not form.has_changed() and existing_profile:
+                continue
+            data = {}
+            for field_name, value in form.cleaned_data.items():
+                if field_name in ('id', 'user', DELETION_FIELD_NAME):
+                    continue
+                data[field_name] = value
+            profile, created = UserProfile.objects.update_or_create(
+                user=self.instance,
+                defaults=data
+            )
+            form.instance = profile
+            if created:
+                self.new_objects.append(profile)
+            elif form.has_changed():
+                self.changed_objects.append((profile, form.changed_data))
+            if hasattr(form, 'save_m2m'):
+                form.save_m2m()
+            instances.append(profile)
+            existing_profile = profile
+        return instances
+
+
 class UserProfileInline(admin.StackedInline):
     """Inline مدیریت پروفایل کاربر در User Admin"""
     model = UserProfile
+    formset = UserProfileInlineFormSet
+    extra = 1
+    max_num = 1
+    fk_name = 'user'
     can_delete = False
     verbose_name_plural = "اطلاعات کارمندی و احراز هویت"
     
